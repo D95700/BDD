@@ -3,8 +3,14 @@
 ## Project shape
 
 - This is a single-project Minecraft Forge MDK, pinned to Minecraft `1.20.1`, Forge `47.4.10`, official mappings, and Java 17 bytecode/toolchain settings.
-- The mod entrypoint and registrations are in `src/main/java/com/example/examplemod/ExampleMod.java`; common config is registered there and loaded by `Config.java`.
+- The mod entrypoint is `src/main/java/com/example/bddmod/BDDMod.java`; client configuration is defined in `src/main/java/com/example/bddmod/Config.java`.
 - `src/generated/resources` is a main resource directory even when it does not exist yet; it is owned by the Forge data generator.
+
+## Change documentation
+
+- After every code or resource change, update `CHANGELOG.md` in the same change set.
+- Write entries for the README/design team in user-facing language: describe visible behavior, configuration changes, installation or compatibility impact, and verification status.
+- Keep technical implementation details concise and separate from the user-facing summary so the file can be reused when preparing the README and release notes.
 
 ## Commands
 
@@ -19,6 +25,6 @@
 ## Forge-specific synchronization
 
 - Mod metadata/version values come from `gradle.properties` and are expanded into `META-INF/mods.toml` and `pack.mcmeta` by `processResources`; keep the `${...}` placeholders in those resource templates.
-- If renaming the template mod, update `mod_id` and `mod_group_id` in `gradle.properties`, the Java package, and `ExampleMod.MODID` together. The mod ID also selects the namespace loaded by all configured GameTest runs.
+- If renaming the mod, update `mod_id` and `mod_group_id` in `gradle.properties`, the Java package, and `BDDMod.MODID` together. The mod ID also selects the namespace loaded by all configured GameTest runs.
 - Keep registrations on the mod event bus (`context.getModEventBus()`), while runtime Forge events use `MinecraftForge.EVENT_BUS`; the current entrypoint deliberately uses both.
 - `publish` targets the repository-local `mcmodsrepo/` directory, not a remote artifact repository.
