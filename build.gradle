@@ -34,13 +34,10 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     mavenCentral()
-    maven { name = 'ObsWebsocket'; url = 'https://maven.pkg.github.com/obs-websocket-community-projects/obs-websocket-java' }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    // 仅作为可选适配的编译入口；核心逻辑不依赖该库，避免其缺失阻断启动。
-    compileOnly 'io.obs-websocket.community:client:2.0.0'
 }
 
 tasks.named('processResources', ProcessResources).configure {

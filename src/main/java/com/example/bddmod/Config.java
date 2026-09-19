@@ -11,7 +11,7 @@ public final class Config {
             .comment("虚拟音频设备播放音量，0 到 1")
             .defineInRange("hiddenAudioVolume", 0.35D, 0.0D, 1.0D);
     public static final ForgeConfigSpec.ConfigValue<String> OBS_WEBSOCKET_PASSWORD = BUILDER
-            .comment("保留供可选 OBS 适配器使用；默认不发送密码")
+            .comment("OBS WebSocket 5 密码；留空表示 OBS 未启用密码")
             .define("obsWebSocketPassword", "");
     public static final ForgeConfigSpec.ConfigValue<String> VIRTUAL_AUDIO_DEVICE_NAME = BUILDER
             .comment("Java Sound 设备名称匹配关键词")

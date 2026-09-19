@@ -2,6 +2,27 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## Unreleased — OBS WebSocket detection
+
+### User-facing changes
+
+- Replaced the temporary HTTP availability check with a real OBS WebSocket 5 connection on `127.0.0.1:<obsPort>`.
+- The HUD now receives recording start/stop changes from OBS events instead of inferring state from an HTTP response body.
+- The mod authenticates with the configured OBS WebSocket password when OBS requires one.
+- On connection, the mod requests the current recording state so the HUD can recover correctly even when Minecraft starts after OBS is already recording.
+- If OBS is closed, authentication fails, or the connection drops, the mod returns to `OBS STANDBY` and retries in the background.
+
+### Compatibility and security
+
+- OBS monitoring remains localhost-only and does not send data to external services.
+- The implementation uses Java 17's built-in WebSocket client, so the distributable JAR does not require extra OBS/Jetty runtime libraries.
+- The password is used only to calculate the OBS WebSocket authentication response and is not logged.
+
+### Verification
+
+- `./gradlew compileJava`: passed.
+- `./gradlew build`: passed.
+
 ## v1.0.0 — Initial playable release
 
 ### User-facing changes
