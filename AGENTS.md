@@ -11,6 +11,7 @@
 - After every code or resource change, update `CHANGELOG.md` in the same change set.
 - Write entries for the README/design team in user-facing language: describe visible behavior, configuration changes, installation or compatibility impact, and verification status.
 - Keep technical implementation details concise and separate from the user-facing summary so the file can be reused when preparing the README and release notes.
+- Set `mod_authors` directly from the contributors' GitHub names. When there are multiple contributors, list the names with English commas and do not substitute a project or organization name.
 
 ## Commands
 

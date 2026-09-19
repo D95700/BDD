@@ -2,6 +2,13 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## Repository workflow — GitHub author attribution rule
+
+### Documentation changes
+
+- Added a repository rule requiring Forge `mod_authors` values to use contributors' GitHub names directly.
+- Multiple contributors must be separated with English commas, for example `D95700,AnotherAuthor`.
+
 ## Metadata update — GitHub author attribution
 
 ### User-facing changes
