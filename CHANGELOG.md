@@ -2,6 +2,17 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## Documentation sync — v1.1.0 README
+
+### User-facing changes
+
+- Updated the README to describe the released OBS WebSocket 5 monitoring behavior instead of the retired HTTP availability check.
+- Added current installation, password configuration, reconnect behavior, privacy notes, and v1.1.0 verification guidance.
+
+### Verification
+
+- Documentation updated against the existing v1.1.0 release entry below.
+
 ## v1.1.0 — OBS WebSocket detection
 
 ### User-facing changes
