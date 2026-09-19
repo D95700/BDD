@@ -2,7 +2,7 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
-## Unreleased — OBS WebSocket detection
+## v1.1.0 — OBS WebSocket detection
 
 ### User-facing changes
 
@@ -22,6 +22,7 @@ This file records user-facing changes for the README, visual-design, and release
 
 - `./gradlew compileJava`: passed.
 - `./gradlew build`: passed.
+- Release artifact: `build/libs/bddmod-1.1.0.jar`.
 
 ## v1.0.0 — Initial playable release
 
@@ -48,7 +49,6 @@ This file records user-facing changes for the README, visual-design, and release
 
 - FBO-based OBS/player view separation is not included yet.
 - Custom Mixin player distortion, shaders, hidden comments, and bundled audio assets are reserved for later releases.
-- The current OBS monitor uses a lightweight localhost HTTP availability/status check rather than the full OBS WebSocket event integration described in the design document.
 
 ### Verification
 
