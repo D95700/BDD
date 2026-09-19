@@ -2,6 +2,27 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## Metadata update — GitHub author attribution
+
+### User-facing changes
+
+- Updated the Forge mod metadata author field to `D95700`, matching the GitHub account shown in the repository's commit history.
+- Future contributors will be listed using their GitHub names, separated by commas when there are multiple contributors.
+
+### Verification
+
+- Repository runtime test record: `./gradlew.bat runClient` passed on Minecraft 1.20.1, Forge 47.4.10, and Java 17.
+- OBS live recording transitions, hidden audio output, and multiplayer compatibility remain outside the recorded test scope.
+
+## Runtime test record — 2026-09-20
+
+### Verification
+
+- Added `TESTLOG.md` with the Forge client runtime test result and verification scope.
+- `./gradlew.bat runClient`: passed; the client loaded `bddmod`, entered a single-player world, connected to the integrated server, and exited with world data saved.
+- No crash or fatal mod-loading error was observed during the run.
+- The test log records remaining warnings and features not covered by this run.
+
 ## Documentation sync — v1.1.0 README
 
 ### User-facing changes
