@@ -17,6 +17,9 @@
 
 - Completing a roadmap section is a formal release boundary: remove any development or prerelease suffix, advance the project version to the next appropriate stable version, and synchronize all user-facing version references.
 - For every completed roadmap section, run the full `build`, commit the completed section, push it to GitHub, and publish a GitHub Release with the installable `-all.jar` artifact.
+- Preserve every installable `-all.jar` produced during that roadmap section until the stable release is published. Upload the retained development or prerelease `-all.jar` files and the final stable `-all.jar` together as assets of the same GitHub Release so the complete section history remains downloadable.
+- Do not upload thin JARs without bundled runtime dependencies. List every uploaded version and SHA-256 digest in the release notes, and verify each retained artifact reports the matching embedded mod version before publishing.
+- Do not run `clean` or otherwise remove retained development artifacts between the final development build and the section release. If a required artifact is missing, reproduce it from its original source revision rather than relabeling current code with an older version.
 - Use only the development and prerelease formats defined below while a roadmap section is still under development; do not publish a completed section as a test release.
 
 ## Version naming

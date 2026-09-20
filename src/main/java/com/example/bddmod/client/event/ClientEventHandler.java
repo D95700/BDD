@@ -4,6 +4,8 @@ import com.example.bddmod.Config;
 import com.example.bddmod.client.BDDSessionData;
 import com.example.bddmod.client.OBSMonitor;
 import com.example.bddmod.client.OBSSetupScreen;
+import com.example.bddmod.client.RecordingPulseController;
+import com.example.bddmod.client.RecordingVeinOverlay;
 import com.example.bddmod.client.RenderRouteTestRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -41,9 +43,11 @@ public final class ClientEventHandler {
         }
 
         clientTicks++;
+        boolean recording = OBSMonitor.isRecording();
+        RecordingPulseController.update(recording && Config.TERROR_MODE_ENABLED.get());
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null && minecraft.level != null) {
-            BDDSessionData.get().tick(OBSMonitor.isRecording(), minecraft.screen == null);
+            BDDSessionData.get().tick(recording, minecraft.screen == null);
         }
     }
 
@@ -101,22 +105,16 @@ public final class ClientEventHandler {
         int width = minecraft.getWindow().getGuiScaledWidth();
         int height = minecraft.getWindow().getGuiScaledHeight();
 
+        if (recording) {
+            RecordingVeinOverlay.render(graphics, width, height, RecordingPulseController.visualLevel());
+        }
+
         String state = recording ? "OBS RECORDING" : "OBS STANDBY";
         int stateColor = recording ? ACCENT_COLOR : HUD_COLOR;
         graphics.drawString(minecraft.font, Component.literal("BDD // " + state), 8, 8, stateColor, true);
 
         String stats = String.format(Locale.ROOT, "checks %d  covered %s", session.checks(), formatTicks(session.coveredTicks()));
         graphics.drawString(minecraft.font, Component.literal(stats), 8, 20, HUD_COLOR, true);
-
-        if (recording) {
-            int alpha = 28 + (int) (12 * Math.sin(clientTicks / 8.0D));
-            int overlay = (Math.max(0, Math.min(255, alpha)) << 24) | 0x5A1010;
-            graphics.fill(0, 0, width, 2, overlay);
-            graphics.fill(0, height - 2, width, height, overlay);
-            graphics.fill(0, 0, 2, height, overlay);
-            graphics.fill(width - 2, 0, width, height, overlay);
-        }
-
     }
 
     private static String formatTicks(long ticks) {

@@ -6,11 +6,11 @@
 
 ![Minecraft 1.20.1](https://img.shields.io/badge/Minecraft-1.20.1-3C8527?style=flat-square&logo=minecraft&logoColor=white)
 ![Forge 47.4.10](https://img.shields.io/badge/Forge-47.4.10-orange?style=flat-square)
-![Version 1.2.0](https://img.shields.io/badge/version-1.2.0-4C9AFF?style=flat-square)
+![Version 1.2.1](https://img.shields.io/badge/version-1.2.1-4C9AFF?style=flat-square)
 ![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Client Only](https://img.shields.io/badge/side-client--only-6C63FF?style=flat-square)
 
-**BDD Local Client 1.2.0** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组正式版本。
+**BDD Local Client 1.2.1** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组正式版本。
 它通过简洁的 HUD、OBS 录制状态反馈和本地会话统计，营造“玩家所见”与“观众所见”之间逐渐产生偏差的心理恐怖氛围。
 
 </div>
@@ -38,9 +38,9 @@ BDD Local Client 的设计重点不是传统的怪物或跳脸惊吓，而是把
 | OBS 密码认证与状态恢复 | ✅ | 支持密码认证，并在连接时读取 OBS 当前录制状态 |
 | OBS 设置引导 | ✅ | 首次打开游戏时自动引导，也可通过主菜单底部的录制图标重复打开；密码框掩码显示 |
 | 断线安全回退 | ✅ | OBS 关闭、认证失败或连接断开时回到待机状态并后台重连 |
-| 录制视觉反馈 | ✅ | OBS 录制时显示低强度、呼吸式的屏幕边缘反馈 |
+| 录制视觉反馈 | ✅ | OBS 录制时显示较短、较细并随共享节奏呼吸的暗红脉络 |
 | 会话统计 | ✅ | 统计录制 tick、可操作/无遮罩 tick 和检查次数 |
-| 虚拟音频输出 | 🧩 | 已实现安全的 Mixer 查找与静默回退，等待上层事件触发音频内容 |
+| 同步虚拟音频 | ✅ | 录制时向配置的虚拟设备输出轻微呼吸与心跳，并与脉络使用同一相位时钟 |
 | 本地信息快照 | 🧩 | 仅提供用户名、操作系统和当前时间的内存快照 |
 | FBO 分流诊断面板 | 🧪 | 测试模式开启时通过置顶 GUI overlay 显示高对比度玩家/OBS 面板，并直接报告模组观测到的 OBS 状态与 WebSocket 连接状态；用于验证 FBO 生命周期，不等同于 OBS 捕获分流 |
 | 画面 FBO 分流 / 模型扭曲 | 🚧 | 原生交换缓冲钩子和观众专用画面仍在规划中 |
@@ -52,7 +52,7 @@ BDD // OBS RECORDING
 checks 0  covered 00:42
 ```
 
-录制状态下，屏幕四边会出现轻微的暗红色脉动边缘；停止录制、OBS 不可访问或连接断开时，该反馈会自动消失。
+录制状态下，屏幕四角与四边会出现较短、较细的暗红分叉脉络；脉络亮度、轻微呼吸声和心跳声由同一个 3 秒周期驱动。停止录制、OBS 不可访问或连接断开时，视觉和音频会一同停止。
 
 ## 🧱 技术架构
 
@@ -62,7 +62,8 @@ BDDMod
 ├─ OBSMonitor                   本机 OBS WebSocket 5 状态监控
 ├─ client/
 │  ├─ BDDSessionData            当前游戏会话统计
-│  ├─ HiddenAudioPlayer         虚拟声卡输出基础设施
+│  ├─ RecordingPulseController  视觉、呼吸声与心跳声的共享相位时钟
+│  ├─ RecordingAudioPlayer      Minecraft 游戏内呼吸与心跳音效
 │  ├─ LocalInfoProvider         最小化本地信息快照
 │  └─ event/ClientEventHandler  客户端 Tick 与 HUD 渲染
 └─ resources/
@@ -98,7 +99,7 @@ BDDMod
 
 ### 安装发行版
 
-1. 从 GitHub Releases 或本地构建产物中获取 `bddmod-1.2.0-all.jar`。
+1. 从 GitHub Releases 或本地构建产物中获取 `bddmod-1.2.1-all.jar`。
 2. 安装 Minecraft 1.20.1 对应的 Forge 47.x 客户端。
 3. 将 JAR 放入 Minecraft 的 `mods` 文件夹：
    - Windows：`%APPDATA%\\.minecraft\\mods`
@@ -167,16 +168,15 @@ BDDMod
 | 配置项 | 默认值 | 作用 |
 | --- | ---: | --- |
 | `terrorModeEnabled` | `true` | 启用/停用 BDD HUD 与录制边缘反馈 |
-| `renderRouteTestEnabled` | `true` | 启用/停用录制时的 FBO 分流测试面板 |
-| `hiddenAudioVolume` | `0.35` | 虚拟音频输出音量，范围 `0.0`–`1.0` |
+| `renderRouteTestEnabled` | `false` | 启用/停用 FBO 分流诊断面板；仅调试时建议开启 |
+| `recordingAudioVolume` | `0.30` | 游戏内呼吸与心跳音量，范围 `0.0`–`1.0`；同时受主音量和环境音效音量控制 |
 | `obsWebSocketPassword` | `""` | OBS WebSocket 5 密码；留空表示 OBS 未启用密码 |
 | `obsSetupCompleted` | `false` | 是否已经完成首次 OBS 设置引导；引导中选择“稍后设置”也会结束本次首次提示 |
-| `virtualAudioDeviceName` | `"VB-Audio,Voicemeeter,CABLE Input"` | 虚拟音频 Mixer 名称匹配关键词 |
 | `obsPort` | `4455` | 连接 `127.0.0.1` 上的 OBS WebSocket 5 端口 |
 
 设置引导保存后会立即请求后台重连 OBS；手动修改配置文件后请完全重启客户端，以确保所有配置值重新加载。
 
-## 📹 OBS 与虚拟音频说明
+## 📹 OBS 与游戏内音效
 
 ### OBS
 
@@ -190,11 +190,11 @@ BDDMod
 
 监控始终限制在 `127.0.0.1`，不会向外部服务发送数据。
 
-### 虚拟音频
+### 游戏内音效
 
-`HiddenAudioPlayer` 会枚举 Java Sound Mixer，并只尝试匹配配置中的虚拟设备关键词。找不到设备时会静默放弃，不会改用玩家的默认扬声器。
+开始录制后，Minecraft 声音引擎会在“环境音效”通道播放轻微的呼吸底噪和低频心跳。玩家可以直接听见这些声音，并能通过游戏的主音量、环境音效音量以及 `recordingAudioVolume` 配置控制响度。
 
-要测试虚拟音频链路，可使用 VB-CABLE 或 Voicemeeter，并在 OBS 中添加对应的“音频输入捕获”源。当前仓库版本尚未接入具体的低语、心跳或环境音触发事件。
+呼吸包络、心跳触发和脉络亮度共享同一个 3 秒相位周期；停止录制或 OBS 断开时会一同停止。声音不再依赖 VB-CABLE 或 Voicemeeter。OBS 是否录入声音取决于当前场景是否捕获 Minecraft 所使用的桌面或应用音频。
 
 ## 🧪 验证清单
 
@@ -204,12 +204,12 @@ BDDMod
 2. 在 OBS 中启用 WebSocket 5，并确认端口和密码配置正确；若启用了 OBS 密码，必须将相同密码写入 `obsWebSocketPassword`。
 3. 开始 OBS 录制，确认状态切换为 `OBS RECORDING`；停止录制后确认恢复为 `OBS STANDBY`。
 4. 在 OBS 已经录制时启动 Minecraft，确认连接后 HUD 能恢复录制状态。
-5. 观察录制状态下屏幕四边的低强度脉动反馈。
+5. 观察录制状态下较短、较细的暗红分叉脉络，并直接在游戏中确认呼吸、心跳和脉络亮度同频变化。
 6. 关闭 OBS 或断开 WebSocket，确认 HUD 安全回退到待机状态。
 7. 打开菜单或暂停界面，确认会话统计只在玩家处于游戏世界时更新。
 8. 将 `terrorModeEnabled=false` 写入配置并重启，确认 HUD 与边缘反馈关闭。
-9. 移除虚拟声卡后触发音频播放路径，确认游戏不会崩溃，也不会输出到默认扬声器。
-10. OBS 开始录制后，确认出现绿色 `PLAYER VIEW` 和红色 `OBS TEST BUFFER` 测试面板；该面板只验证独立 FBO 生命周期，不验证 OBS 已捕获不同画面。
+9. 将 `recordingAudioVolume=0` 后重启，确认录制脉络仍正常显示而呼吸和心跳静音。
+10. 临时设置 `renderRouteTestEnabled=true`，确认出现绿色 `PLAYER VIEW` 和红色 `OBS TEST BUFFER` 测试面板；该面板只验证独立 FBO 生命周期，不验证 OBS 已捕获不同画面，测试后建议关闭。
 
 ## 🗺️ 开发路线
 
@@ -218,26 +218,29 @@ BDDMod
 - [x] 建立独立 TextureTarget 的创建、尺寸同步、写入和安全回退诊断路径。
 - [ ] 增加仅对观众可见的局部模型变形、噪点和隐藏文字。
 - [ ] 加入检查、回避、遮掩等行为的可验证触发器。
-- [ ] 完成虚拟音频素材管理与事件驱动播放。
+- [x] 完成游戏内呼吸与心跳素材管理、事件驱动播放及共享节奏同步。
 - [ ] 增加兼容 Iris/Oculus 等渲染扩展的回退策略。
 - [ ] 补充自动化测试、运行截图和发行版工作流。
 
 构建会同时生成不含内置依赖的开发薄包和带 `-all` 后缀的可安装包。安装时必须选择 `-all.jar`。
 
-## 🆕 1.2.0 更新摘要
+## 🆕 1.2.1 正式版摘要
 
 - OBS WebSocket 改用随模组打包的阻塞式传输，避开部分 Windows 主机上的 Java NIO Selector 初始化故障。
 - 支持 OBS 录制开始/停止事件、密码认证、连接时的当前状态恢复和断线重连。
+- 缩短并减淡暗红色分叉脉络，降低对正常游戏视野的遮挡。
+- 新增玩家可直接听见的游戏内呼吸与心跳音效，并与脉络使用同一个节奏时钟。
+- 音效归入 Minecraft 的环境音效通道，不再依赖 VB-CABLE、Voicemeeter 或额外的 OBS 音频输入源。
 - OBS 关闭、认证失败或断线时自动回到 `OBS STANDBY`，并在后台重连。
 - `CONNECTED` 只在 OBS 完成身份确认后显示，避免认证失败时短暂误报。
 - `nv-websocket-client` 已包含在发行 JAR 中，用户不需要额外安装依赖。
-- 当前正式版：`build/libs/bddmod-1.2.0-all.jar`。
+- 当前正式版：`build/libs/bddmod-1.2.1-all.jar`。GitHub Release 同时保留本节的 `1.2.1.dev1`、`1.2.1.dev2` 和 `1.2.1.dev3` 可安装构建。
 
 ## 📁 许可证与致谢
 
 - 本项目自主编写的代码与资源采用 [WTFPL v2](LICENSE) 许可。
 - Forge/MDK、内置依赖及其他第三方内容仍遵循各自的许可；相关声明保留在 `THIRD_PARTY_LICENSES.txt`、`CREDITS.txt` 和依赖包中。
-- Minecraft、Minecraft Forge、OBS 和 VB-CABLE/Voicemeeter 均为其各自权利人的项目或商标，本项目与 Mojang、Microsoft、OBS Project 或相关音频软件开发者没有隶属关系。
+- Minecraft、Minecraft Forge 和 OBS 均为其各自权利人的项目或商标，本项目与 Mojang、Microsoft 或 OBS Project 没有隶属关系。
 
 ## 💬 反馈与贡献
 
@@ -246,7 +249,7 @@ BDDMod
 - Minecraft、Forge、Java 版本；
 - 操作系统和显卡/渲染器信息；
 - `latest.log` 中与 `bddmod` 相关的片段；
-- 是否启用了 OBS、Iris/Oculus 或虚拟音频设备；
+- 是否启用了 OBS、Iris/Oculus，以及主音量与环境音效音量；
 - 可稳定复现问题的最小步骤。
 
 涉及心理恐怖内容的改进建议，请同时说明预期的玩家体验和内容警告需求。

@@ -1,5 +1,204 @@
 # BDD Mod Test Log
 
+## 1.2.1 stable release packaging
+
+- Test date: 2026-09-21
+- Test type: Full Forge verification and release packaging
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium compiler used by the host-only init script)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat build --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - stable compile, resource processing, tests (`NO-SOURCE`), reobfuscation, Jar-in-Jar packaging, and release artifact inspection
+
+### Verified behaviors
+
+- The full `build` completed successfully in 23 seconds without running `clean`, preserving all development artifacts from this roadmap section.
+- `bddmod-1.2.1-all.jar` reports embedded mod version `1.2.1` and contains the synchronized audio player, pulse controller, vein overlay, sound registrations, both OGG assets, the WTFPL license, and third-party notices.
+- The retained `1.2.1.dev1`, `1.2.1.dev2`, and `1.2.1.dev3` installable JARs each report the development version matching their filenames.
+- Stable artifact: `build/libs/bddmod-1.2.1-all.jar`, SHA-256 `0FB5B673E51945690D6D03FAD77C2F08A337A63BF4B712CA2A09DF2E0AB2798F`.
+
+### Retained release assets
+
+- `bddmod-1.2.1.dev1-all.jar`: `3CDC45E46E62025AE40655A921FD2CF29956F0A25D2C70B986486671A44F1EE8`
+- `bddmod-1.2.1.dev2-all.jar`: `82175391D4EB6370BBAD48E4D401DDF8E9EE20E249F787112A9575F547FD35D2`
+- `bddmod-1.2.1.dev3-all.jar`: `B40FDE6CAE63C913A6C6862DDD3B533AB4A54FC8252B2A6A21F2EB06A43F4098`
+- `bddmod-1.2.1-all.jar`: `0FB5B673E51945690D6D03FAD77C2F08A337A63BF4B712CA2A09DF2E0AB2798F`
+
+### Runtime verification boundary
+
+- The stable artifact differs from the accepted `1.2.1.dev3` build only in release metadata/versioning. The immediately preceding `1.2.1.dev3` runtime test verified real OBS synchronization, in-game audio playback, user listening acceptance, world save, and normal shutdown.
+- No separate stable-version client runtime was performed after the metadata-only promotion.
+
+## 1.2.1.dev3 in-game recording audio acceptance
+
+- Test date: 2026-09-21
+- Test type: Forge development client runtime test - real OBS recording and player-audible synchronized audio
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - client lifecycle, real OBS recording state, Minecraft sound-engine playback, user listening acceptance, and normal shutdown
+
+### Verified behaviors
+
+- OBS Studio started recording and exposed its WebSocket service on port `4455`; the client identified it and observed `RECORDING`.
+- Minecraft initialized OpenAL on `Speakers (USBAudio2.0)`, started the normal sound engine, and logged activation of both synchronized in-game audio and the shared visual pulse.
+- The user reported that the heartbeat level was appropriate, the breathing was very quiet through speakers without headphones, and the combined effect was satisfactory. The current mix was therefore retained.
+- Minecraft stopped normally, saved the world, and Gradle reported `BUILD SUCCESSFUL in 2m 8s`.
+- OBS stopped recording and finalized a 6m22s MP4 containing H.264 video and a 48 kHz stereo AAC audio stream.
+
+### Not verified
+
+- Headphone listening and the breathing level on other playback devices were not tested.
+- The recording contains an audio track, but this run did not isolate or measure the breathing/heartbeat waveform inside the mixed OBS track.
+
+### Evidence and observations
+
+- Runtime logs: `run/logs/latest.log` and `run/logs/debug.log`.
+- Gradle output: `build/tmp/runclient-dev3-listen.out.log` and `build/tmp/runclient-dev3-listen.err.log`.
+- OBS log: `C:/Users/Administrator/AppData/Roaming/obs-studio/logs/2026-09-21 01-34-29.txt`.
+- OBS recording: `E:/OBS/2026-09-21 01-34-50.mp4`.
+
+## 1.2.1.dev2 synchronized recording pulse runtime
+
+- Test date: 2026-09-21
+- Test type: Forge development client runtime test - shared visual pulse and virtual-device breathing/heartbeat audio
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args="--quickPlaySingleplayer 新的世界" --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - client lifecycle, OBS transitions, shared pulse, virtual audio output lifecycle, and reduced-obstruction visual
+
+### Verified behaviors
+
+- The `1.2.1.dev2` client loaded, entered the single-player world, and identified the local OBS Studio 32.2.2 WebSocket service.
+- Real recording changed the monitor to `RECORDING`, activated the 20-path vein overlay, and started the shared three-second pulse clock.
+- Java Sound matched and opened `VoiceMeeter Aux Input (VB-Audio VoiceMeeter AUX VAIO)` as a compatible `44.1 kHz`, 16-bit mono output. The synthesized breathing and heartbeat stream remained active without an audio exception.
+- Stopping recording changed the monitor to `STANDBY`; the audio stream and shared pulse both stopped in the same update window.
+- The FBO diagnostic panel remained disabled. OBS screenshots show shorter, thinner veins confined to the edges with an unobstructed center view.
+- Seven screenshots across one pulse cycle measured edge red-excess values from `60,768` to `103,923`, a roughly 71% peak-to-trough change that confirms visible intensity modulation.
+- The client stopped normally, saved all dimensions, and Gradle reported `BUILD SUCCESSFUL in 3m 43s`.
+
+### Not verified
+
+- OBS currently captures the default desktop and microphone devices. The VoiceMeeter line was verified as open and streaming, but inclusion of that virtual input in the final OBS audio track requires corresponding OBS/VoiceMeeter routing and was not claimed.
+- Subjective breathing and heartbeat loudness still requires listening through the configured VoiceMeeter/OBS monitoring path.
+- Native OBS/player frame separation remains outside this test.
+
+### Evidence and observations
+
+- Runtime logs: `run/logs/latest.log` and `run/logs/debug.log`.
+- Pulse screenshots: `build/tmp/pulse-frame-0.png` through `build/tmp/pulse-frame-6.png`; representative peak and low frames are `pulse-frame-4.png` and `pulse-frame-6.png`.
+- OBS recording: `E:/OBS/2026-09-21 01-02-38.mp4`.
+- OBS log: `C:/Users/Administrator/AppData/Roaming/obs-studio/logs/2026-09-21 01-01-25.txt`.
+- Full build artifact: `build/libs/bddmod-1.2.1.dev2-all.jar`, SHA-256 `82175391D4EB6370BBAD48E4D401DDF8E9EE20E249F787112A9575F547FD35D2`.
+
+## 1.2.1.dev1 recording vein visual acceptance
+
+- Test date: 2026-09-21
+- Test type: Forge development client runtime test - real OBS recording and dark-red branching vein visual
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args="--quickPlaySingleplayer 新的世界" --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - client lifecycle, real OBS synchronization, and visible recording vein overlay
+
+### Verified behaviors
+
+- The `1.2.1.dev1` client loaded, entered the existing single-player world, and connected to OBS Studio 32.2.2 on localhost.
+- Starting real OBS recording changed the monitor state to `RECORDING`; the renderer then activated all 30 vein paths at a `427x240` GUI resolution and initialized the FBO at `854x480`.
+- An OBS program-output screenshot visibly shows the dark-red branching pattern around the corners and edges while leaving the center view available. The HUD remains legible above the effect.
+- Stopping OBS recording changed the monitor state back to `STANDBY`; the client then stopped normally, saved all dimensions, and Gradle reported `BUILD SUCCESSFUL in 1m 21s`.
+- The FBO readiness diagnostic appeared once when the target was created rather than once per frame.
+
+### Not verified
+
+- The static screenshot verifies visibility and placement but does not independently prove the full temporal breathing cycle.
+- The route-test panel still states `HOOK: NOT INSTALLED`; this test does not claim native OBS/player frame separation.
+
+### Evidence and observations
+
+- Runtime logs: `run/logs/latest.log` and `run/logs/debug.log`.
+- OBS screenshot: `build/tmp/obs-current.png` at `1280x720`.
+- OBS recording: `E:/OBS/2026-09-21 00-38-16.mp4`.
+- Full build artifact: `build/libs/bddmod-1.2.1.dev1-all.jar`, SHA-256 `3CDC45E46E62025AE40655A921FD2CF29956F0A25D2C70B986486671A44F1EE8`.
+
+## 1.2.1.dev1 initial recording vein runtime
+
+- Test date: 2026-09-21
+- Test type: Forge development client runtime test - initial real OBS recording branch verification
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args="--quickPlaySingleplayer 新的世界" --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - client launch, recording transition, vein-renderer activation, and normal exit
+
+### Verified behaviors
+
+- The client entered the world, observed real OBS `RECORDING` and `STANDBY` transitions, activated the new 30-path vein renderer, and exited normally with `BUILD SUCCESSFUL in 2m 3s`.
+- The run exposed per-frame FBO-ready DEBUG output in the development console. Logging was restricted to FBO creation or resize before the final visual acceptance run.
+
+### Evidence and observations
+
+- OBS recording: `E:/OBS/2026-09-21 00-33-06.mp4`.
+- This run established the recording branch behavior; the following acceptance run archived the static visual evidence.
+
+## 1.2.0 recording visual acceptance retry
+
+- Test date: 2026-09-20
+- Test type: Forge development client runtime test - real OBS recording-state and dark-red edge feedback
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args="--quickPlaySingleplayer 新的世界" --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: FAIL - Minecraft and OBS synchronization passed, but the expected dark-red recording visual was not visible
+
+### Verified behaviors
+
+- The client loaded successfully, entered the single-player world, started the integrated server, and activated the route-test GUI renderer at `427x240` GUI pixels.
+- The monitor identified the real OBS WebSocket service and observed `RECORDING` at 21:43:19, followed by `STANDBY` at 21:44:08.
+- The recording-time FBO probe reported ready at `854x480`, so the recording branch was executing.
+- The client and integrated server shut down normally; Gradle reported `BUILD SUCCESSFUL in 1m 44s`.
+
+### Failure and observations
+
+- The user did not see the expected dark-red recording effect while OBS was recording, so the visual acceptance criterion failed.
+- Source inspection after the run found that the current effect is only a four-sided, two-GUI-pixel border with alpha varying from 28 to 40. It does not implement a vein pattern and is faint enough to be effectively invisible at the tested scale.
+- Forge and Minecraft source inspection confirmed that the shared `GuiGraphics` batch is flushed at the end of the GUI frame; a missing explicit `flush()` in the handler is not the cause.
+- This result does not verify OBS/player frame separation; the diagnostic still reports that the native capture hook is not installed.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log`.
+- Gradle output: `build/tmp/runclient-visual-retry.out.log` and `build/tmp/runclient-visual-retry.err.log`.
+
+## 1.2.0 recording visual initial attempt
+
+- Test date: 2026-09-20
+- Test type: Forge development client runtime test - initial dark-red recording visual attempt
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; .\gradlew.bat runClient --args="--quickPlaySingleplayer 新的世界" --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: FAIL - the client crashed before recording visual verification
+
+### Failure and observations
+
+- World startup reached integrated-server initialization, then Java failed to open the selector required by the local connection with `Unable to establish loopback connection`.
+- No recording visual behavior was verified in this attempt. The retry used `-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable` to force the affected selector path to fall back to TCP loopback.
+
+### Evidence
+
+- Crash report: `run/crash-reports/crash-2026-09-20_21.38.51-client.txt`.
+- Gradle output: `build/tmp/runclient-visual.out.log` and `build/tmp/runclient-visual.err.log`.
+
 ## 1.2.0-test7 real OBS identification follow-up
 
 - Test date: 2026-09-20

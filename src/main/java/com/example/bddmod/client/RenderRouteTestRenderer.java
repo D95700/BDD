@@ -52,7 +52,7 @@ public final class RenderRouteTestRenderer {
             if (recording && !failed) {
                 int targetWidth = minecraft.getWindow().getWidth();
                 int targetHeight = minecraft.getWindow().getHeight();
-                ensureTarget(targetWidth, targetHeight);
+                boolean targetChanged = ensureTarget(targetWidth, targetHeight);
 
                 // Finish GUI batches before changing the active framebuffer.
                 graphics.flush();
@@ -60,7 +60,7 @@ public final class RenderRouteTestRenderer {
                 probeTarget.clear(true);
                 probeTarget.unbindWrite();
                 minecraft.getMainRenderTarget().bindWrite(true);
-                if (isReady()) {
+                if (targetChanged && isReady()) {
                     LOGGER.debug("Route-test FBO ready at {}x{}", targetWidth, targetHeight);
                 }
             }
@@ -80,19 +80,22 @@ public final class RenderRouteTestRenderer {
         return probeTarget != null && !failed;
     }
 
-    private static void ensureTarget(int width, int height) {
+    private static boolean ensureTarget(int width, int height) {
         if (probeTarget == null) {
             probeTarget = new TextureTarget(width, height, true, false);
             targetWidth = width;
             targetHeight = height;
-            return;
+            return true;
         }
 
         if (targetWidth != width || targetHeight != height) {
             probeTarget.resize(width, height, false);
             targetWidth = width;
             targetHeight = height;
+            return true;
         }
+
+        return false;
     }
 
     private static void restoreMainTarget(Minecraft minecraft) {

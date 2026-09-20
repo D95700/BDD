@@ -2,6 +2,85 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.2.1 — synchronized recording pulse
+
+### User-facing changes
+
+- Added a clearly visible dark-red branching vein effect around the screen edges while OBS is recording, with shorter paths, reduced opacity, and a clear central view.
+- Added subtle player-audible breathing and heartbeat effects through Minecraft's ambient sound channel.
+- Synchronized vein intensity, breathing volume, and heartbeat accents to one three-second phase clock; all effects start and stop with OBS recording.
+- Disabled the large FBO route-test panel by default while keeping it available through `renderRouteTestEnabled` for diagnostics.
+- Added `recordingAudioVolume` for the recording effects. Minecraft's master and ambient volume controls also apply.
+
+### Compatibility and verification
+
+- Stable version `1.2.1` targets Minecraft 1.20.1, Forge 47.4.10, and Java 17 with no new external runtime dependency.
+- The final development-client run passed real OBS recording detection, synchronized visual/audio activation, user listening acceptance, world save, and normal shutdown.
+- The full stable `build` passed. The installable artifact is `build/libs/bddmod-1.2.1-all.jar` with SHA-256 `0FB5B673E51945690D6D03FAD77C2F08A337A63BF4B712CA2A09DF2E0AB2798F`.
+- Package inspection confirmed the stable mod version, synchronized audio/visual classes, OGG sound assets, project license, and third-party notices. Full artifact verification is recorded in `TESTLOG.md`.
+
+### Release
+
+- Promoted the accepted `1.2.1.dev3` implementation to stable `1.2.1` without changing its gameplay mix.
+- GitHub Release `v1.2.1` retains the installable `1.2.1.dev1`, `1.2.1.dev2`, and `1.2.1.dev3` builds alongside the final stable JAR.
+- Verified release asset SHA-256 digests:
+  - `1.2.1.dev1`: `3CDC45E46E62025AE40655A921FD2CF29956F0A25D2C70B986486671A44F1EE8`
+  - `1.2.1.dev2`: `82175391D4EB6370BBAD48E4D401DDF8E9EE20E249F787112A9575F547FD35D2`
+  - `1.2.1.dev3`: `B40FDE6CAE63C913A6C6862DDD3B533AB4A54FC8252B2A6A21F2EB06A43F4098`
+  - `1.2.1`: `0FB5B673E51945690D6D03FAD77C2F08A337A63BF4B712CA2A09DF2E0AB2798F`
+
+## 1.2.1.dev3 — audible in-game recording pulse
+
+### User-facing changes
+
+- Moved the synchronized breathing and heartbeat from a configured virtual audio device into Minecraft's normal audio output, so the player can hear both effects directly during OBS recording.
+- Added dedicated breathing and heartbeat sound assets. The breathing volume envelope, heartbeat triggers, and vein intensity still use the same three-second phase clock.
+- Stopping recording now immediately stops both the breathing loop and any heartbeat currently playing.
+- Assigned both effects to Minecraft's ambient sound category, so the master volume, ambient volume, and new `recordingAudioVolume` setting all control their loudness.
+- Removed the obsolete `hiddenAudioVolume` and `virtualAudioDeviceName` settings; VB-CABLE or Voicemeeter is no longer required for the effect.
+
+### Compatibility and verification
+
+- Development version advanced to `1.2.1.dev3`; Minecraft 1.20.1, Forge 47.4.10, and Java 17 requirements are unchanged.
+- `compileJava`, `processResources`, and the full `build` passed. Installable artifact: `build/libs/bddmod-1.2.1.dev3-all.jar`.
+- The bundled breathing and heartbeat files were verified as 44.1 kHz OGG Vorbis audio.
+- A real OBS development-client run passed recording detection, Minecraft sound-engine playback, world save, and normal shutdown. The user accepted the mix: heartbeat level was appropriate, while breathing remained intentionally very quiet through speakers without headphones.
+
+## 1.2.1.dev2 — synchronized recording pulse
+
+### User-facing changes
+
+- Shortened the vein paths, reduced them from 30 to 20, removed the thick outer layer, and lowered resting opacity so the recording effect covers less of the game view.
+- Added subtle synthesized breathing and low heartbeat audio that starts and stops with OBS recording.
+- Visual intensity, breathing volume, and paired heartbeat accents now use one shared three-second phase clock, so their changes remain synchronized.
+- Hidden audio continues to target only configured VB-CABLE or Voicemeeter-style virtual outputs and never falls back to the player's default speakers.
+- The large FBO route-test panel now defaults to disabled so diagnostic UI does not cover normal gameplay; it remains available through `renderRouteTestEnabled`.
+
+### Compatibility and verification
+
+- Development version advanced to `1.2.1.dev2`; Minecraft 1.20.1, Forge 47.4.10, and Java 17 requirements are unchanged.
+- `compileJava` and the full `build` passed. Installable artifact: `build/libs/bddmod-1.2.1.dev2-all.jar`.
+- A real OBS run passed `RECORDING` and `STANDBY` transitions, opened the compatible `VoiceMeeter Aux Input` line, streamed synthesized audio without error, and stopped both the audio and shared pulse cleanly.
+- Seven OBS screenshots across one three-second cycle measured about 71% peak-to-trough edge-red variation and confirm that the shorter veins leave the center view unobstructed.
+- The current OBS scene uses default desktop and microphone sources, so inclusion of the VoiceMeeter stream in the final recorded audio track remains dependent on external OBS/VoiceMeeter routing.
+
+## 1.2.1.dev1 — recording vein visibility correction
+
+### User-facing changes
+
+- Replaced the nearly invisible two-pixel recording border with a clearly recognizable dark-red branching vein pattern around all four edges and corners.
+- The veins use layered glow, body, and core colors with a slow breathing pulse, while leaving the center of the game view unobstructed.
+- HUD text now renders above the vein effect so recording status and session statistics remain readable.
+- The recording-time FBO diagnostic now logs readiness only when its target is created or resized instead of once per rendered frame.
+
+### Compatibility and verification
+
+- Targets Minecraft 1.20.1, Forge 47.4.10, and Java 17 with no new runtime dependency or configuration option.
+- `compileJava` and the full `build` passed. Installable artifact: `build/libs/bddmod-1.2.1.dev1-all.jar`.
+- A real OBS recording run passed the `RECORDING` and `STANDBY` transitions, activated all 30 vein paths, and exited normally.
+- An OBS program-output screenshot at `build/tmp/obs-current.png` confirms that the branching veins are clearly visible around the edges while the center view remains usable.
+- Native OBS/player frame separation remains outside this correction; the diagnostic still reports that the capture hook is not installed.
+
 ## Unreleased — version naming policy
 
 ### Project workflow changes
