@@ -26,7 +26,7 @@
 - Preserve every installable `-all.jar` produced during that roadmap section until the stable release is published. Upload the retained development or prerelease `-all.jar` files and the final stable `-all.jar` together as assets of the same GitHub Release so the complete section history remains downloadable.
 - Do not upload thin JARs without bundled runtime dependencies. List every uploaded version and SHA-256 digest in the release notes, and verify each retained artifact reports the matching embedded mod version before publishing.
 - Do not run `clean` or otherwise remove retained development artifacts between the final development build and the section release. If a required artifact is missing, reproduce it from its original source revision rather than relabeling current code with an older version.
-- Use only the development and prerelease formats defined below while a roadmap section is still under development; do not publish a completed section as a test release.
+- Use only the SemVer prerelease formats defined below while a roadmap section is still under development; do not publish a completed section as a test release.
 
 ## README release synchronization
 
@@ -34,26 +34,28 @@
 - At minimum, synchronize the version badge, introductory current-version text, installable JAR filename, installation/download guidance, release summary, relevant configuration documentation, and completed roadmap status.
 - After publishing the GitHub Release, verify that the README's stable version and asset names match the published tag and downloadable `-all.jar`. Commit and push any required correction immediately rather than deferring it to the next development cycle.
 
-## Version naming
+## Version naming (SemVer 2.0.0)
 
-- Stable versions use `MAJOR.MINOR.PATCH`, for example `1.2.0`. All three parts are non-negative integers without leading zeroes. Compare them numerically from left to right, so `1.9.0 < 1.10.0 < 1.11.0`.
-- Increment `MAJOR` for incompatible API changes, major module changes, or architectural changes. Reset `MINOR` and `PATCH` to `0` at the same time.
-- Increment `MINOR` for compatible feature additions, meaningful behavior changes, or deprecations. Reset `PATCH` to `0` at the same time.
-- Increment `PATCH` for compatible bug fixes and small changes. A severe bug fix is sufficient reason for a patch release.
-- A `0.y.z` version denotes initial development and potentially unstable APIs. `1.0.0` and later denote an established stable API unless a development or prerelease suffix is present.
-- Development builds use `MAJOR.MINOR.PATCH.devN`, where `N` is a positive, monotonically increasing integer, for example `1.3.0.dev4`.
-- Prereleases use `MAJOR.MINOR.PATCH.aN`, `.bN`, or `.cN`, where `N` is a positive, monotonically increasing integer. `a` means Alpha, `b` means Beta, and `c` means Release Candidate. Do not create new `-testN` versions.
-- Stage meanings are: Base for an incomplete foundation, Alpha for internal feature implementation with known defects, Beta for public testing after severe defects are removed but features may still change, RC for a near-final release candidate, and Release for the stable user-facing build. Stable Release versions omit the stage suffix.
-- Development and prerelease versions sort before their matching stable release. For matching numeric parts, letter stages sort by ASCII order, for example `1.3.0.a1 < 1.3.0.b1 < 1.3.0.c1 < 1.3.0`.
-- If a date-qualified build is explicitly required, use `MAJOR.MINOR.PATCH.YYYYMMDD_STAGE`, for example `1.3.0.20260920_beta`. The date is eight digits and must change on each calendar day that changes are made; `STAGE` is `base`, `alpha`, `beta`, `rc`, or `release`. Normal project releases omit both the date and textual stage and use `MAJOR.MINOR.PATCH`.
-- Published versions are immutable. After a tag or release is published, never replace its code, resources, metadata, or artifact; make every subsequent published change under a new version.
-- Keep `gradle.properties`, generated mod metadata, README badges and download names, changelog headings, Git tags, GitHub Release titles, and JAR filenames synchronized to the same version.
+- This section supersedes all earlier project-specific version naming rules starting with `1.4.0`. Existing published and development versions such as `1.3.0.dev1`, `1.3.0.dev2`, and `1.3.0.dev3` are historical, immutable records; do not rename or rewrite them.
+- The version core MUST use `MAJOR.MINOR.PATCH` (`X.Y.Z`). `X`, `Y`, and `Z` MUST be non-negative integers with no leading zeroes. Compare them numerically from left to right, so `1.9.0 < 1.10.0 < 1.11.0`.
+- Increment `MAJOR` for incompatible public API, module, or architectural changes. Reset `MINOR` and `PATCH` to `0` when `MAJOR` increments.
+- Increment `MINOR` for backward-compatible features, meaningful compatible behavior changes, or deprecations. Reset `PATCH` to `0` when `MINOR` increments.
+- Increment `PATCH` for backward-compatible bug fixes and other compatible corrections. A severe compatible bug fix is still a PATCH release.
+- A `0.y.z` version denotes an initial-development API whose compatibility is not guaranteed. Version `1.0.0` and later represent the established public API, subject to prerelease status.
+- A stable release has no suffix, for example `1.4.0` or `1.4.1`.
+- A prerelease MUST follow the core after a hyphen and contain one or more dot-separated ASCII identifiers using only `[0-9A-Za-z-]`, for example `1.4.0-alpha.1`, `1.4.0-beta.1`, or `1.4.0-rc.1`. Numeric identifiers MUST NOT have leading zeroes. Project stage identifiers are `alpha`, `beta`, and `rc`; use a monotonically increasing numeric component for successive builds of the same stage.
+- Roadmap development builds MUST use SemVer prereleases such as `1.4.0-alpha.1` and `1.4.0-alpha.2`. Do not create new `.devN`, `.aN`, `.bN`, `.cN`, `-testN`, or underscore date-stage versions from `1.4.0` onward.
+- Build metadata MAY follow a release or prerelease after `+`, using dot-separated ASCII identifiers, for example `1.4.0+build.1` or `1.4.0-rc.1+sha.abc123`. Build metadata MUST NOT change version precedence and MUST NOT replace a required prerelease identifier.
+- Version precedence compares `MAJOR`, `MINOR`, and `PATCH` numerically; a prerelease has lower precedence than its corresponding stable release. When prerelease cores match, compare identifiers left to right: numeric identifiers numerically, non-numeric identifiers by ASCII order, numeric identifiers lower than non-numeric identifiers, and a longer equal prefix has higher precedence. Ignore build metadata for precedence.
+- Published versions are immutable. After a tag or release is published, never replace its code, resources, metadata, or artifact; issue a new version for every subsequent published change.
+- Keep `gradle.properties`, generated mod metadata, README badges and download names, changelog headings, Git tags, GitHub Release titles, and JAR filenames synchronized to the same SemVer value (excluding an optional `v` prefix used only in Git tag names).
 
-## Roadmap step versioning
+## Roadmap step versioning under SemVer
 
-- Give every independently verifiable roadmap micro-step its own monotonically increasing development version, even when multiple micro-steps belong to one larger roadmap section.
-- Bump `mod_version` before implementing the next micro-step and synchronize that version in the README, changelog heading, generated metadata, test records, and installable `-all.jar` filename.
-- Do not combine separate micro-steps under one development version. Preserve each micro-step's installable `-all.jar` so the completed roadmap section can publish the full sequence together.
+- Give every independently verifiable roadmap micro-step its own monotonically increasing SemVer prerelease, even when multiple micro-steps belong to one larger roadmap section. For example, use `1.4.0-alpha.1`, then `1.4.0-alpha.2`.
+- Bump `mod_version` to the next valid SemVer prerelease before implementing the next micro-step and synchronize that value in the README, changelog heading, generated metadata, test records, and installable `-all.jar` filename.
+- When the roadmap section is complete, promote the accepted prerelease line to the next stable core version without a prerelease suffix, such as `1.4.0`; preserve each prerelease `-all.jar` so the completed section can publish the full sequence together.
+- Do not combine separately verifiable micro-steps under one prerelease, and do not relabel an existing artifact as another version.
 
 ## Test logging
 
