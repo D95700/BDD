@@ -13,6 +13,16 @@
 - Keep technical implementation details concise and separate from the user-facing summary so the file can be reused when preparing the README and release notes.
 - Set `mod_authors` directly from the contributors' GitHub names. When there are multiple contributors, list the names with English commas and do not substitute a project or organization name.
 
+## Test logging
+
+- Store runtime test results in the repository-root file `TESTLOG.md`; the filename must remain fully uppercase.
+- Update `TESTLOG.md` after each development-client or development-server runtime test so other teams can read the latest verification status.
+- Record the test date, test type, Minecraft/Forge/Java versions, Mod ID, exact Gradle command, and an explicit `PASS` or `FAIL` result.
+- Record verified behaviors separately from observations, warnings, and features not covered by the test.
+- Include evidence paths such as the relevant runtime log, test world, or Gradle output when available.
+- Runtime test results must distinguish successful game launching from exhaustive feature verification; do not claim untested gameplay features were verified.
+- Keep `TESTLOG.md` user-readable and concise. Do not paste the full game log into it; summarize relevant warnings and link or point to the source log instead.
+
 ## Commands
 
 - Use the checked-in wrapper (`.\gradlew.bat` on Windows, `./gradlew` elsewhere), not a system Gradle installation.

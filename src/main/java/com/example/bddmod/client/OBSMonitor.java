@@ -18,6 +18,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * OBS WebSocket 5 状态监视器。
@@ -27,19 +29,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * OBS 不可用、认证失败或协议错误时只回退为未录制状态。</p>
  */
 public final class OBSMonitor {
+    private static final Logger LOGGER = LoggerFactory.getLogger("bddmod-obs-monitor");
     private static final String OBS_HOST = "127.0.0.1";
     private static final int OUTPUTS_SUBSCRIPTION = 1 << 6;
     private static final long RECONNECT_SECONDS = 5L;
+    private static final long AUTH_FAILURE_RETRY_SECONDS = 30L;
 
     private static final AtomicBoolean RECORDING = new AtomicBoolean(false);
     private static final AtomicBoolean STARTED = new AtomicBoolean(false);
     private static final AtomicBoolean CONNECTING = new AtomicBoolean(false);
+    private static final AtomicBoolean CONNECTED = new AtomicBoolean(false);
+    private static final AtomicBoolean AUTH_FAILED = new AtomicBoolean(false);
     private static final HttpClient WEBSOCKET_CLIENT = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(2))
             .build();
 
     private static ScheduledExecutorService executor;
     private static volatile WebSocket socket;
+    private static volatile long authFailureTimeNanos;
 
     private OBSMonitor() {
     }
@@ -61,10 +68,55 @@ public final class OBSMonitor {
         return RECORDING.get();
     }
 
+    public static String getConnectionStatus() {
+        if (CONNECTED.get()) {
+            return "CONNECTED";
+        }
+        if (AUTH_FAILED.get()) {
+            return "AUTH FAILED";
+        }
+        if (CONNECTING.get()) {
+            return "CONNECTING";
+        }
+        return "DISCONNECTED";
+    }
+
+    /**
+     * 由设置界面调用，在后台丢弃旧连接并立即开始一次新的连接尝试。
+     */
+    public static void reconnect() {
+        ScheduledExecutorService currentExecutor = executor;
+        if (currentExecutor == null) {
+            return;
+        }
+
+        currentExecutor.execute(() -> {
+            WebSocket previousSocket = socket;
+            socket = null;
+            CONNECTING.set(false);
+            AUTH_FAILED.set(false);
+            authFailureTimeNanos = 0L;
+            clearState();
+            if (previousSocket != null) {
+                previousSocket.sendClose(WebSocket.NORMAL_CLOSURE, "settings changed")
+                        .exceptionally(ignored -> null);
+            }
+            connectIfNeeded();
+        });
+    }
+
     private static void connectIfNeeded() {
         if (socket != null || !CONNECTING.compareAndSet(false, true)) {
             return;
         }
+
+        if (AUTH_FAILED.get()
+                && System.nanoTime() - authFailureTimeNanos < TimeUnit.SECONDS.toNanos(AUTH_FAILURE_RETRY_SECONDS)) {
+            CONNECTING.set(false);
+            return;
+        }
+
+        AUTH_FAILED.set(false);
 
         try {
             URI endpoint = URI.create("ws://" + OBS_HOST + ":" + Config.OBS_PORT.get());
@@ -75,6 +127,7 @@ public final class OBSMonitor {
                         CONNECTING.set(false);
                         if (error != null) {
                             clearState();
+                            LOGGER.debug("OBS WebSocket connection attempt failed: {}", error.toString());
                         } else {
                             socket = webSocket;
                         }
@@ -87,6 +140,7 @@ public final class OBSMonitor {
 
     private static void clearState() {
         RECORDING.set(false);
+        CONNECTED.set(false);
         socket = null;
     }
 
@@ -107,7 +161,8 @@ public final class OBSMonitor {
                     // OBS 的其他握手、请求或事件消息对录制状态没有影响。
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            LOGGER.debug("OBS WebSocket message handling failed: {}", exception.toString());
             // 单条损坏消息不应影响客户端；连接若已失效会由 onClose 触发重连。
         }
     }
@@ -133,7 +188,8 @@ public final class OBSMonitor {
         requestData.addProperty("requestType", "GetRecordStatus");
         requestData.addProperty("requestId", UUID.randomUUID().toString());
         requestData.add("requestData", new JsonObject());
-        webSocket.sendText(requestData.toString(), true);
+        // OBS WebSocket 5 Request messages use operation code 6.
+        send(webSocket, 6, requestData);
     }
 
     private static void handleEvent(JsonObject eventData) {
@@ -158,6 +214,8 @@ public final class OBSMonitor {
                 ? responseData.getAsJsonObject("requestStatus")
                 : new JsonObject();
         if (!status.has("result") || !status.get("result").getAsBoolean()) {
+            LOGGER.debug("OBS GetRecordStatus request was rejected: {}", status.has("code")
+                    ? status.get("code").getAsString() : "unknown");
             clearState();
             return;
         }
@@ -169,13 +227,23 @@ public final class OBSMonitor {
     }
 
     private static void updateRecording(JsonObject data) {
+        boolean previous = RECORDING.get();
         if (data.has("outputActive")) {
             RECORDING.set(data.get("outputActive").getAsBoolean());
+            logRecordingTransition(previous);
             return;
         }
 
         String outputState = data.has("outputState") ? data.get("outputState").getAsString() : "";
         RECORDING.set("OBS_WEBSOCKET_OUTPUT_STARTED".equals(outputState));
+        logRecordingTransition(previous);
+    }
+
+    private static void logRecordingTransition(boolean previous) {
+        boolean current = RECORDING.get();
+        if (previous != current) {
+            LOGGER.info("OBS recording state changed: {}", current ? "RECORDING" : "STANDBY");
+        }
     }
 
     private static void send(WebSocket webSocket, int operationCode, JsonObject data) {
@@ -206,6 +274,8 @@ public final class OBSMonitor {
         @Override
         public void onOpen(WebSocket webSocket) {
             socket = webSocket;
+            CONNECTED.set(true);
+            LOGGER.info("OBS WebSocket connected to 127.0.0.1:{}", Config.OBS_PORT.get());
             webSocket.request(1);
         }
 
@@ -223,11 +293,24 @@ public final class OBSMonitor {
 
         @Override
         public void onError(WebSocket webSocket, Throwable error) {
+            if (socket != webSocket) {
+                return;
+            }
             clearState();
+            LOGGER.debug("OBS WebSocket error: {}", error.toString());
         }
 
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+            if (socket != webSocket) {
+                return null;
+            }
+            LOGGER.debug("OBS WebSocket closed: code={}, reason={}", statusCode, reason);
+            if (statusCode == 4009) {
+                AUTH_FAILED.set(true);
+                authFailureTimeNanos = System.nanoTime();
+                LOGGER.warn("OBS WebSocket authentication failed; check obsWebSocketPassword in the client config");
+            }
             clearState();
             CONNECTING.set(false);
             return null;

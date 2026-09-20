@@ -7,12 +7,18 @@ public final class Config {
     public static final ForgeConfigSpec.BooleanValue TERROR_MODE_ENABLED = BUILDER
             .comment("启用客户端本地 BDD 视觉叠加")
             .define("terrorModeEnabled", true);
+    public static final ForgeConfigSpec.BooleanValue RENDER_ROUTE_TEST_ENABLED = BUILDER
+            .comment("录制时显示 FBO 分流测试面板；该测试不包含 OBS 原生交换缓冲钩子")
+            .define("renderRouteTestEnabled", true);
     public static final ForgeConfigSpec.DoubleValue HIDDEN_AUDIO_VOLUME = BUILDER
             .comment("虚拟音频设备播放音量，0 到 1")
             .defineInRange("hiddenAudioVolume", 0.35D, 0.0D, 1.0D);
     public static final ForgeConfigSpec.ConfigValue<String> OBS_WEBSOCKET_PASSWORD = BUILDER
             .comment("OBS WebSocket 5 密码；留空表示 OBS 未启用密码")
             .define("obsWebSocketPassword", "");
+    public static final ForgeConfigSpec.BooleanValue OBS_SETUP_COMPLETED = BUILDER
+            .comment("是否已经完成 OBS 首次启动引导")
+            .define("obsSetupCompleted", false);
     public static final ForgeConfigSpec.ConfigValue<String> VIRTUAL_AUDIO_DEVICE_NAME = BUILDER
             .comment("Java Sound 设备名称匹配关键词")
             .define("virtualAudioDeviceName", "VB-Audio,Voicemeeter,CABLE Input");

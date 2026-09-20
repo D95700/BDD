@@ -6,11 +6,11 @@
 
 ![Minecraft 1.20.1](https://img.shields.io/badge/Minecraft-1.20.1-3C8527?style=flat-square&logo=minecraft&logoColor=white)
 ![Forge 47.4.10](https://img.shields.io/badge/Forge-47.4.10-orange?style=flat-square)
-![Version 1.1.0](https://img.shields.io/badge/version-1.1.0-4C9AFF?style=flat-square)
+![Version 1.2.0-test6](https://img.shields.io/badge/version-1.2.0--test6-4C9AFF?style=flat-square)
 ![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Client Only](https://img.shields.io/badge/side-client--only-6C63FF?style=flat-square)
 
-**BDD Local Client 1.1.0** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组原型。
+**BDD Local Client 1.2.0-test6** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组测试构建。
 它通过简洁的 HUD、OBS 录制状态反馈和本地会话统计，营造“玩家所见”与“观众所见”之间逐渐产生偏差的心理恐怖氛围。
 
 </div>
@@ -36,12 +36,14 @@ BDD Local Client 的设计重点不是传统的怪物或跳脸惊吓，而是把
 | BDD 状态 HUD | ✅ | 在快捷栏区域显示 `BDD // OBS RECORDING` 或 `BDD // OBS STANDBY` |
 | OBS WebSocket 5 监控 | ✅ | 连接 `127.0.0.1:<obsPort>`，通过 OBS 事件实时同步录制状态 |
 | OBS 密码认证与状态恢复 | ✅ | 支持密码认证，并在连接时读取 OBS 当前录制状态 |
+| OBS 设置引导 | ✅ | 首次打开游戏时自动引导，也可通过主菜单底部的录制图标重复打开；密码框掩码显示 |
 | 断线安全回退 | ✅ | OBS 关闭、认证失败或连接断开时回到待机状态并后台重连 |
 | 录制视觉反馈 | ✅ | OBS 录制时显示低强度、呼吸式的屏幕边缘反馈 |
 | 会话统计 | ✅ | 统计录制 tick、可操作/无遮罩 tick 和检查次数 |
 | 虚拟音频输出 | 🧩 | 已实现安全的 Mixer 查找与静默回退，等待上层事件触发音频内容 |
 | 本地信息快照 | 🧩 | 仅提供用户名、操作系统和当前时间的内存快照 |
-| 画面 FBO 分流 / 模型扭曲 | 🚧 | 规划中，当前版本不会修改玩家模型或生成 OBS 专用画面 |
+| FBO 分流诊断面板 | 🧪 | 测试模式开启时通过置顶 GUI overlay 显示高对比度玩家/OBS 面板，并直接报告模组观测到的 OBS 状态与 WebSocket 连接状态；用于验证 FBO 生命周期，不等同于 OBS 捕获分流 |
+| 画面 FBO 分流 / 模型扭曲 | 🚧 | 原生交换缓冲钩子和观众专用画面仍在规划中 |
 
 ### HUD 示例
 
@@ -165,12 +167,14 @@ BDDMod
 | 配置项 | 默认值 | 作用 |
 | --- | ---: | --- |
 | `terrorModeEnabled` | `true` | 启用/停用 BDD HUD 与录制边缘反馈 |
+| `renderRouteTestEnabled` | `true` | 启用/停用录制时的 FBO 分流测试面板 |
 | `hiddenAudioVolume` | `0.35` | 虚拟音频输出音量，范围 `0.0`–`1.0` |
 | `obsWebSocketPassword` | `""` | OBS WebSocket 5 密码；留空表示 OBS 未启用密码 |
+| `obsSetupCompleted` | `false` | 是否已经完成首次 OBS 设置引导；引导中选择“稍后设置”也会结束本次首次提示 |
 | `virtualAudioDeviceName` | `"VB-Audio,Voicemeeter,CABLE Input"` | 虚拟音频 Mixer 名称匹配关键词 |
 | `obsPort` | `4455` | 连接 `127.0.0.1` 上的 OBS WebSocket 5 端口 |
 
-修改配置后请完全重启客户端，以确保所有配置值重新加载。
+设置引导保存后会立即请求后台重连 OBS；手动修改配置文件后请完全重启客户端，以确保所有配置值重新加载。
 
 ## 📹 OBS 与虚拟音频说明
 
@@ -178,10 +182,11 @@ BDDMod
 
 默认端口为 `4455`。1.1.0 使用 Java 17 内置 WebSocket 客户端连接 OBS WebSocket 5：
 
-1. 在 OBS 中启用 WebSocket 服务，并确认端口与 `obsPort` 一致。
-2. 如果 OBS 启用了认证，将密码写入 `obsWebSocketPassword`；密码只用于计算认证响应，不会写入日志。
-3. 启动 Minecraft 后，模组会请求当前录制状态，因此即使 OBS 先于 Minecraft 开始录制，HUD 也能恢复正确状态。
-4. 录制开始/停止由 OBS 事件驱动更新；OBS 关闭、认证失败或连接断开时，模组会显示 `OBS STANDBY` 并在后台重连。
+1. 在 OBS 中启用 WebSocket 服务，并确认端口与引导界面中的端口一致。
+2. 首次打开 Minecraft 时，在引导界面填写 OBS 端口和密码；之后可通过主菜单底部、无障碍按钮旁的录制图标随时重新打开，悬停会显示 `OBS 设置`。连接地址固定为 `127.0.0.1`。密码框使用掩码显示，保存到客户端配置后不会写入日志。
+3. 首次引导可以选择“稍后设置”；之后可从主菜单重新进入，也可在 `bddmod-client.toml` 中修改 `obsPort` 和 `obsWebSocketPassword`。
+4. 启动 Minecraft 后，模组会请求当前录制状态，因此即使 OBS 先于 Minecraft 开始录制，HUD 也能恢复正确状态。
+5. 录制开始/停止由 OBS 事件驱动更新；OBS 关闭或连接断开时，模组会显示 `OBS STANDBY` 并在后台重连。密码错误时，测试面板会显示 `AUTH FAILED`，并降低重试频率。
 
 监控始终限制在 `127.0.0.1`，不会向外部服务发送数据。
 
@@ -196,7 +201,7 @@ BDDMod
 启动开发客户端后，可以按以下步骤检查基础功能：
 
 1. 进入任意单人世界，确认左上角显示 `BDD // OBS STANDBY`。
-2. 在 OBS 中启用 WebSocket 5，并确认端口和密码配置正确。
+2. 在 OBS 中启用 WebSocket 5，并确认端口和密码配置正确；若启用了 OBS 密码，必须将相同密码写入 `obsWebSocketPassword`。
 3. 开始 OBS 录制，确认状态切换为 `OBS RECORDING`；停止录制后确认恢复为 `OBS STANDBY`。
 4. 在 OBS 已经录制时启动 Minecraft，确认连接后 HUD 能恢复录制状态。
 5. 观察录制状态下屏幕四边的低强度脉动反馈。
@@ -204,11 +209,13 @@ BDDMod
 7. 打开菜单或暂停界面，确认会话统计只在玩家处于游戏世界时更新。
 8. 将 `terrorModeEnabled=false` 写入配置并重启，确认 HUD 与边缘反馈关闭。
 9. 移除虚拟声卡后触发音频播放路径，确认游戏不会崩溃，也不会输出到默认扬声器。
+10. OBS 开始录制后，确认出现绿色 `PLAYER VIEW` 和红色 `OBS TEST BUFFER` 测试面板；该面板只验证独立 FBO 生命周期，不验证 OBS 已捕获不同画面。
 
 ## 🗺️ 开发路线
 
 - [ ] 增强 OBS WebSocket 断线重连、错误提示和连接状态诊断。
 - [ ] 接入 OBS 专用 FBO / RenderTarget 渲染链路。
+- [x] 建立独立 TextureTarget 的创建、尺寸同步、写入和安全回退诊断路径。
 - [ ] 增加仅对观众可见的局部模型变形、噪点和隐藏文字。
 - [ ] 加入检查、回避、遮掩等行为的可验证触发器。
 - [ ] 完成虚拟音频素材管理与事件驱动播放。

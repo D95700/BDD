@@ -1,6 +1,7 @@
 package com.example.bddmod;
 
 import com.example.bddmod.client.OBSMonitor;
+import com.example.bddmod.client.event.ClientEventHandler;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -13,6 +14,7 @@ public final class BDDMod {
     public BDDMod(FMLJavaModLoadingContext context) {
         context.registerConfig(ModConfig.Type.CLIENT, Config.SPEC);
         if (net.minecraftforge.fml.loading.FMLEnvironment.dist == Dist.CLIENT) {
+            context.getModEventBus().addListener(ClientEventHandler::onRegisterGuiOverlays);
             OBSMonitor.start();
         }
     }
