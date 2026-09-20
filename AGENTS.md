@@ -13,6 +13,12 @@
 - Keep technical implementation details concise and separate from the user-facing summary so the file can be reused when preparing the README and release notes.
 - Set `mod_authors` directly from the contributors' GitHub names. When there are multiple contributors, list the names with English commas and do not substitute a project or organization name.
 
+## Conversation completion
+
+- If any source code or resource file is changed during a conversation, complete the relevant verification, commit the intended change set, and push the current branch before sending the final response for that conversation. This applies to development work as well as stable releases; do not leave code or resource changes only in the local working tree between conversations.
+- Before committing, inspect the working tree and staged diff, exclude unrelated user changes and secrets, and keep the required `CHANGELOG.md` and test records in the same commit.
+- If the user explicitly asks to pause, not commit, or not push, follow that instruction and report the remaining local state. If authentication, connectivity, or a remote rejection prevents pushing, preserve the local commit and report the exact blocker instead of claiming completion.
+
 ## Roadmap release policy
 
 - Completing a roadmap section is a formal release boundary: remove any development or prerelease suffix, advance the project version to the next appropriate stable version, and synchronize all user-facing version references.
