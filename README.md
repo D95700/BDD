@@ -6,11 +6,11 @@
 
 ![Minecraft 1.20.1](https://img.shields.io/badge/Minecraft-1.20.1-3C8527?style=flat-square&logo=minecraft&logoColor=white)
 ![Forge 47.4.10](https://img.shields.io/badge/Forge-47.4.10-orange?style=flat-square)
-![Version 1.2.0-test6](https://img.shields.io/badge/version-1.2.0--test6-4C9AFF?style=flat-square)
+![Version 1.2.0](https://img.shields.io/badge/version-1.2.0-4C9AFF?style=flat-square)
 ![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Client Only](https://img.shields.io/badge/side-client--only-6C63FF?style=flat-square)
 
-**BDD Local Client 1.2.0-test6** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组测试构建。
+**BDD Local Client 1.2.0** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组正式版本。
 它通过简洁的 HUD、OBS 录制状态反馈和本地会话统计，营造“玩家所见”与“观众所见”之间逐渐产生偏差的心理恐怖氛围。
 
 </div>

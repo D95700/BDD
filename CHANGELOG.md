@@ -2,6 +2,17 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## Unreleased — README version sync
+
+### User-facing changes
+
+- Corrected the README header badge and introduction from the obsolete `1.2.0-test6` label to the released `1.2.0` version.
+- Rechecked the README installation filename and release summary against GitHub Release `v1.2.0`; both identify `bddmod-1.2.0-all.jar` as the installable artifact.
+
+### Verification
+
+- Confirmed that README current-version text no longer contains test-version or older-release references.
+
 ## Unreleased — project license
 
 ### User-facing changes
