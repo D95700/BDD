@@ -28,6 +28,12 @@
 - Do not run `clean` or otherwise remove retained development artifacts between the final development build and the section release. If a required artifact is missing, reproduce it from its original source revision rather than relabeling current code with an older version.
 - Use only the development and prerelease formats defined below while a roadmap section is still under development; do not publish a completed section as a test release.
 
+## README release synchronization
+
+- After every stable-version commit, review and update `README.md` before the release workflow is considered complete. Prefer including the synchronized README in the stable release commit; if the release commit has already been created without it, create and push an immediate follow-up documentation commit.
+- At minimum, synchronize the version badge, introductory current-version text, installable JAR filename, installation/download guidance, release summary, relevant configuration documentation, and completed roadmap status.
+- After publishing the GitHub Release, verify that the README's stable version and asset names match the published tag and downloadable `-all.jar`. Commit and push any required correction immediately rather than deferring it to the next development cycle.
+
 ## Version naming
 
 - Stable versions use `MAJOR.MINOR.PATCH`, for example `1.2.0`. All three parts are non-negative integers without leading zeroes. Compare them numerically from left to right, so `1.9.0 < 1.10.0 < 1.11.0`.
