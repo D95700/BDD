@@ -2,6 +2,7 @@ package com.example.bddmod.client;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
@@ -11,7 +12,7 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 /**
- * Owns the off-screen framebuffer that will become the audience-only render surface.
+ * Owns the off-screen framebuffer that feeds the independently capturable audience window.
  */
 public final class AudienceRenderTargetManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("bddmod-audience-target");
@@ -45,6 +46,8 @@ public final class AudienceRenderTargetManager {
             target.bindWrite(true);
             target.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
             target.clear(Minecraft.ON_OSX);
+            copyMainFrameToTarget(mainTarget);
+            target.bindWrite(true);
             renderer.accept(target);
             if (changed) {
                 LOGGER.info("Audience render target ready at {}x{}", targetWidth, targetHeight);
@@ -103,6 +106,20 @@ public final class AudienceRenderTargetManager {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Seed the audience surface with the frame Minecraft has already rendered. The later
+     * audience-only pass can replace or augment this copy without touching the player's target.
+     */
+    private static void copyMainFrameToTarget(RenderTarget mainTarget) {
+        GlStateManager._glBindFramebuffer(36008, mainTarget.frameBufferId);
+        GlStateManager._glBindFramebuffer(36009, target.frameBufferId);
+        GlStateManager._glBlitFrameBuffer(
+                0, 0, mainTarget.width, mainTarget.height,
+                0, 0, target.width, target.height,
+                16384, 9728);
+        GlStateManager._glBindFramebuffer(36160, mainTarget.frameBufferId);
     }
 
     private static void disableAfterFailure(Throwable throwable) {

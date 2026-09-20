@@ -8,7 +8,7 @@ public final class Config {
             .comment("启用客户端本地 BDD 视觉叠加")
             .define("terrorModeEnabled", true);
     public static final ForgeConfigSpec.BooleanValue RENDER_ROUTE_TEST_ENABLED = BUILDER
-            .comment("录制时显示 FBO 分流测试面板；该测试不包含 OBS 原生交换缓冲钩子")
+            .comment("录制时启用 FBO 与独立观众窗口诊断；该测试不包含 OBS 原生交换缓冲钩子")
             .define("renderRouteTestEnabled", false);
     public static final ForgeConfigSpec.DoubleValue RECORDING_AUDIO_VOLUME = BUILDER
             .comment("游戏内录制呼吸与心跳音量，0 到 1；同时受 Minecraft 主音量和环境音效音量控制")

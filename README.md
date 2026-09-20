@@ -42,8 +42,8 @@ BDD Local Client 的设计重点不是传统的怪物或跳脸惊吓，而是把
 | 会话统计 | ✅ | 统计录制 tick、可操作/无遮罩 tick 和检查次数 |
 | 同步虚拟音频 | ✅ | 录制时向配置的虚拟设备输出轻微呼吸与心跳，并与脉络使用同一相位时钟 |
 | 本地信息快照 | 🧩 | 仅提供用户名、操作系统和当前时间的内存快照 |
-| FBO 分流诊断面板 | 🧪 | 测试模式开启时通过置顶 GUI overlay 显示高对比度玩家/OBS 面板，并直接报告模组观测到的 OBS 状态与 WebSocket 连接状态；用于验证 FBO 生命周期，不等同于 OBS 捕获分流 |
-| 画面 FBO 分流 / 模型扭曲 | 🚧 | 原生交换缓冲钩子和观众专用画面仍在规划中 |
+| FBO 与观众窗口诊断 | 🧪 | 测试模式开启时创建 `BDD Audience Output` 独立窗口，并通过共享 OpenGL 上下文显示观众 RenderTarget；面板报告窗口状态，适合 OBS 窗口源捕获 |
+| 观众专用模型扭曲 / 噪点 / 隐藏文字 | 🚧 | 当前观众窗口先镜像已渲染的玩家画面，原生交换缓冲钩子和观众专用效果仍在规划中 |
 
 ### HUD 示例
 
@@ -63,6 +63,7 @@ BDDMod
 ├─ client/
 │  ├─ BDDSessionData            当前游戏会话统计
 │  ├─ AudienceRenderTargetManager 观众专用离屏渲染目标生命周期
+│  ├─ AudienceWindowManager         共享上下文观众窗口与纹理呈现
 │  ├─ RecordingPulseController  视觉、呼吸声与心跳声的共享相位时钟
 │  ├─ RecordingAudioPlayer      Minecraft 游戏内呼吸与心跳音效
 │  ├─ LocalInfoProvider         最小化本地信息快照
@@ -169,7 +170,7 @@ BDDMod
 | 配置项 | 默认值 | 作用 |
 | --- | ---: | --- |
 | `terrorModeEnabled` | `true` | 启用/停用 BDD HUD 与录制边缘反馈 |
-| `renderRouteTestEnabled` | `false` | 启用/停用 FBO 分流诊断面板；仅调试时建议开启 |
+| `renderRouteTestEnabled` | `false` | 启用/停用 FBO 与独立观众窗口诊断；开启后 OBS 可捕获 `BDD Audience Output` 窗口，仅调试时建议开启 |
 | `recordingAudioVolume` | `0.30` | 游戏内呼吸与心跳音量，范围 `0.0`–`1.0`；同时受主音量和环境音效音量控制 |
 | `obsWebSocketPassword` | `""` | OBS WebSocket 5 密码；留空表示 OBS 未启用密码 |
 | `obsSetupCompleted` | `false` | 是否已经完成首次 OBS 设置引导；引导中选择“稍后设置”也会结束本次首次提示 |
@@ -210,7 +211,7 @@ BDDMod
 7. 打开菜单或暂停界面，确认会话统计只在玩家处于游戏世界时更新。
 8. 将 `terrorModeEnabled=false` 写入配置并重启，确认 HUD 与边缘反馈关闭。
 9. 将 `recordingAudioVolume=0` 后重启，确认录制脉络仍正常显示而呼吸和心跳静音。
-10. 临时设置 `renderRouteTestEnabled=true`，确认出现绿色 `PLAYER VIEW` 和红色 `OBS TEST BUFFER` 测试面板；该面板只验证独立 FBO 生命周期，不验证 OBS 已捕获不同画面，测试后建议关闭。
+10. 临时设置 `renderRouteTestEnabled=true`，进入录制后确认出现绿色 `PLAYER VIEW` / 红色 `OBS TEST BUFFER` 面板，并看到标题为 `BDD Audience Output` 的独立窗口；在 OBS 中添加窗口源捕获该窗口。当前窗口镜像玩家已渲染画面，测试后建议关闭。
 
 ## 🗺️ 开发路线
 
@@ -228,8 +229,9 @@ BDDMod
 ## 🧪 1.3.0.dev1 开发进度
 
 - 新增独立的观众 RenderTarget 管理器，统一负责创建、像素尺寸同步、帧缓冲绑定、主目标恢复和显式释放。
+- 新增共享 OpenGL 上下文的 `BDD Audience Output` 独立窗口，将观众 RenderTarget 纹理呈现为可被 OBS 窗口源捕获的画面。
 - 渲染失败后会熔断观众目标而不影响玩家主画面；停止录制或关闭诊断时会释放目标并允许下一次重新初始化。
-- 现阶段仍只验证离屏目标生命周期，尚未创建 OBS 可捕获的独立输出窗口，也未加入观众专用特效。
+- 当前窗口先镜像玩家已渲染画面，尚未加入观众专用模型扭曲、噪点或隐藏文字。
 - 当前开发构建：`build/libs/bddmod-1.3.0.dev1-all.jar`；当前 GitHub 正式版仍为 `1.2.1`。
 
 ## 🆕 1.2.1 正式版摘要

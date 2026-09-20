@@ -1,5 +1,35 @@
 # BDD Mod Test Log
 
+## 1.3.0.dev1 shared-context audience window runtime
+
+- Test date: 2026-09-21
+- Test type: Forge development-client runtime test - temporary local OBS WebSocket recording state, audience RenderTarget, and independent GLFW output window
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args='--quickPlaySingleplayer "新的世界"' --init-script build\tmp\codex-direct-javac.init.gradle` with a temporary local WebSocket 5 endpoint at `127.0.0.1:4455`
+- Result: PASS - client startup, recording-state activation, shared-context audience window creation, texture presentation path, OBS disconnect fallback, and normal process shutdown
+
+### Verified behaviors
+
+- The Forge client entered the existing single-player world and reached the render thread on AMD Radeon RX 6750 GRE OpenGL 4.6 / LWJGL 3.3.1.
+- The local OBS protocol endpoint completed identification and reported `RECORDING`; the mod logged `Route-test GUI renderer active`, `Audience render target ready at 854x480`, and `Audience output window opened at 854x480` with title `BDD Audience Output`.
+- The audience window used the shared OpenGL context and presented the copied main color buffer without a crash or an OpenGL error. The Java process exposed the audience window title while it was open.
+- Stopping the temporary endpoint changed the monitor back to standby; the audience RenderTarget was released, the Minecraft window title returned, and the client remained responsive.
+- The temporary diagnostic setting was restored to `renderRouteTestEnabled = false` after shutdown.
+
+### Not verified
+
+- A real OBS Studio window-source capture was not performed in this run; the endpoint only supplied the same WebSocket state messages needed to exercise the client.
+- Audience-only model distortion, noise, hidden text, native swap-buffer interception, and capture output pixel comparison remain outside this step.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log` and `run/logs/debug.log`.
+- Render-route messages: `run/logs/latest.log` entries at `04:26:22` and fallback at `04:28:20`.
+- Temporary protocol driver used only during the test: `build/tmp/mock_obs_route_test.py`.
+
 ## 1.3.0.dev1 audience RenderTarget runtime attempt
 
 - Test date: 2026-09-21

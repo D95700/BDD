@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Small, deliberately conservative render-target probe used by the split-route test build.
  *
- * <p>This class visualizes the audience render-target lifecycle. It does not claim to be the
- * final OBS output route: a separate capture surface still needs to be implemented.</p>
+ * <p>This class visualizes the audience render-target and separate-window lifecycle. It remains
+ * a diagnostic route; audience-only effects are added by later roadmap steps.</p>
  */
 public final class RenderRouteTestRenderer {
     private static final Logger LOGGER = LoggerFactory.getLogger("bddmod-render-route");
@@ -45,10 +45,17 @@ public final class RenderRouteTestRenderer {
         if (recording) {
             // Finish GUI batches before changing the active framebuffer.
             graphics.flush();
-            AudienceRenderTargetManager.renderFrame(minecraft, audienceTarget -> {
-                // The first milestone owns lifecycle only; later steps render an audience frame here.
+            boolean rendered = AudienceRenderTargetManager.renderFrame(minecraft, audienceTarget -> {
+                // The audience surface starts as a copy of the player's frame. Later milestones
+                // can add audience-only passes here without changing the main framebuffer.
             });
+            if (rendered) {
+                AudienceWindowManager.present(minecraft, AudienceRenderTargetManager.getTarget());
+            } else {
+                AudienceWindowManager.release();
+            }
         } else {
+            AudienceWindowManager.release();
             AudienceRenderTargetManager.release();
         }
 
@@ -85,9 +92,10 @@ public final class RenderRouteTestRenderer {
                 Component.literal("AUDIENCE FBO: " + AudienceRenderTargetManager.describeState()),
                 left + 8, top + 54, PANEL_TEXT, true);
         graphics.drawString(minecraft.font,
-                Component.literal("HOOK: NOT INSTALLED"), split + 8, top + 54, PANEL_TEXT, true);
+                Component.literal("AUDIENCE WINDOW: " + AudienceWindowManager.describeState()),
+                split + 8, top + 54, PANEL_TEXT, true);
         graphics.drawString(minecraft.font,
-                Component.literal("ROUTE TEST - NATIVE OBS SPLIT NOT ACTIVE"),
+                Component.literal("OBS CAPTURE: WINDOW SOURCE READY"),
                 left + 8, top + 74, 0xFFFFFFFF, true);
     }
 }

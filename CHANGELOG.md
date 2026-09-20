@@ -6,13 +6,18 @@ This file records user-facing changes for the README, visual-design, and release
 
 ### User-facing changes
 
-- Began the next roadmap section with a dedicated audience RenderTarget manager; default gameplay remains unchanged because no OBS output window or audience-only effect is connected yet.
+- Added a shared-context `BDD Audience Output` window while the route-test diagnostic is enabled; OBS can capture this window separately from the player window.
+- The audience window currently mirrors the already-rendered player frame, leaving the player view unchanged while preparing a dedicated audience-only render pass.
+- Closing the audience window, losing its OpenGL context, failing window creation, or disconnecting OBS disables only the audience route and returns to normal player rendering.
+- Began the next roadmap section with a dedicated audience RenderTarget manager; default gameplay remains unchanged because audience-only effects are not connected yet.
 - The diagnostic panel now reports the managed audience framebuffer state and pixel dimensions.
 - Stopping OBS recording or disabling the diagnostic releases the audience framebuffer so a later recording can initialize a fresh target.
 
 ### Technical behavior and verification
 
 - Centralized framebuffer creation, resize, render-thread binding, main-target restoration, cleanup, and failure isolation outside the diagnostic renderer.
+- Added a shared OpenGL-context presentation path with an isolated shader/VAO pipeline; the main Minecraft context is restored after every audience frame.
+- The audience target is seeded from the main color buffer before future audience-only passes run, so the current window is a useful capture surface even before model distortion is added.
 - A failed audience pass is disabled without taking down Minecraft's main render target; releasing the manager clears the failure state for a future retry.
 - Development version advanced to `1.3.0.dev1`; `compileJava`, `processResources`, and the full `build` passed. The installable artifact is `build/libs/bddmod-1.3.0.dev1-all.jar`.
 
