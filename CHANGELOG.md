@@ -6,7 +6,7 @@ This file records user-facing changes for the README, visual-design, and release
 
 ### Project workflow changes
 
-- Replaced the project-specific development suffix rules with the SemVer 2.0.0 format for versions beginning at `1.4.0`.
+- Replaced the project-specific development suffix rules with the SemVer 2.0.0 format effective immediately for the next version change.
 - Roadmap micro-steps now use valid prereleases such as `1.4.0-alpha.1`, stable releases omit the prerelease suffix, and compatible bug fixes use PATCH increments.
 - Added SemVer rules for `MAJOR.MINOR.PATCH`, hyphenated prereleases, optional plus-prefixed build metadata, numeric identifiers without leading zeroes, and version precedence.
 - Kept all existing `1.3.0.dev*` and earlier versions as immutable historical artifacts; no existing tag, release, or JAR is renamed.
@@ -134,7 +134,7 @@ This file records user-facing changes for the README, visual-design, and release
 - An OBS program-output screenshot at `build/tmp/obs-current.png` confirms that the branching veins are clearly visible around the edges while the center view remains usable.
 - Native OBS/player frame separation remains outside this correction; the diagnostic still reports that the capture hook is not installed.
 
-## Historical workflow note — legacy version naming policy (superseded from 1.4.0)
+## Historical workflow note — legacy version naming policy (superseded immediately)
 
 ### Project workflow changes
 

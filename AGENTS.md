@@ -36,7 +36,7 @@
 
 ## Version naming (SemVer 2.0.0)
 
-- This section supersedes all earlier project-specific version naming rules starting with `1.4.0`. Existing published and development versions such as `1.3.0.dev1`, `1.3.0.dev2`, and `1.3.0.dev3` are historical, immutable records; do not rename or rewrite them.
+- This section supersedes all earlier project-specific version naming rules effective immediately. Existing published and development versions such as `1.3.0.dev1`, `1.3.0.dev2`, and `1.3.0.dev3` are historical, immutable records; do not rename or rewrite them. The next version change MUST use this SemVer policy.
 - The version core MUST use `MAJOR.MINOR.PATCH` (`X.Y.Z`). `X`, `Y`, and `Z` MUST be non-negative integers with no leading zeroes. Compare them numerically from left to right, so `1.9.0 < 1.10.0 < 1.11.0`.
 - Increment `MAJOR` for incompatible public API, module, or architectural changes. Reset `MINOR` and `PATCH` to `0` when `MAJOR` increments.
 - Increment `MINOR` for backward-compatible features, meaningful compatible behavior changes, or deprecations. Reset `PATCH` to `0` when `MINOR` increments.
@@ -44,7 +44,7 @@
 - A `0.y.z` version denotes an initial-development API whose compatibility is not guaranteed. Version `1.0.0` and later represent the established public API, subject to prerelease status.
 - A stable release has no suffix, for example `1.4.0` or `1.4.1`.
 - A prerelease MUST follow the core after a hyphen and contain one or more dot-separated ASCII identifiers using only `[0-9A-Za-z-]`, for example `1.4.0-alpha.1`, `1.4.0-beta.1`, or `1.4.0-rc.1`. Numeric identifiers MUST NOT have leading zeroes. Project stage identifiers are `alpha`, `beta`, and `rc`; use a monotonically increasing numeric component for successive builds of the same stage.
-- Roadmap development builds MUST use SemVer prereleases such as `1.4.0-alpha.1` and `1.4.0-alpha.2`. Do not create new `.devN`, `.aN`, `.bN`, `.cN`, `-testN`, or underscore date-stage versions from `1.4.0` onward.
+- Roadmap development builds MUST use SemVer prereleases such as `1.4.0-alpha.1` and `1.4.0-alpha.2`. Do not create new `.devN`, `.aN`, `.bN`, `.cN`, `-testN`, or underscore date-stage versions after this policy takes effect.
 - Build metadata MAY follow a release or prerelease after `+`, using dot-separated ASCII identifiers, for example `1.4.0+build.1` or `1.4.0-rc.1+sha.abc123`. Build metadata MUST NOT change version precedence and MUST NOT replace a required prerelease identifier.
 - Version precedence compares `MAJOR`, `MINOR`, and `PATCH` numerically; a prerelease has lower precedence than its corresponding stable release. When prerelease cores match, compare identifiers left to right: numeric identifiers numerically, non-numeric identifiers by ASCII order, numeric identifiers lower than non-numeric identifiers, and a longer equal prefix has higher precedence. Ignore build metadata for precedence.
 - Published versions are immutable. After a tag or release is published, never replace its code, resources, metadata, or artifact; issue a new version for every subsequent published change.
