@@ -2,6 +2,30 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.2.0 — resilient OBS transport
+
+### User-facing changes
+
+- Replaced the Java HTTP WebSocket transport with a bundled blocking-socket client so OBS monitoring no longer depends on the host's failing Java NIO selector initialization.
+- OBS remains restricted to `127.0.0.1`; connection, authentication, recording-state events, and reconnect behavior keep the same user-facing protocol.
+- Connection generations now isolate callbacks from obsolete sockets after settings changes, preventing an old disconnect from clearing a newer OBS connection.
+- OBS networking initializes only in the background. Connection failures leave OBS disconnected and retrying instead of preventing Minecraft from loading the mod.
+- The status changes to `CONNECTED` only after OBS accepts identification and authentication, avoiding a brief false-positive connection state when credentials are rejected.
+
+### Compatibility and verification
+
+- Targets Minecraft 1.20.1, Forge 47.4.10, and Java 17.
+- The Apache-2.0 `nv-websocket-client` 2.14 library is bundled with Forge Jar-in-Jar; users do not install it separately.
+- The formal `1.2.0` full `build` passed; the installable JAR contains the nested WebSocket client and valid Jar-in-Jar metadata.
+- A simulator-backed runtime completed the OBS Hello/Identify flow, current-state request, `RECORDING` and `STANDBY` events, connection loss, and automatic reconnect.
+- A follow-up run connected to OBS Studio 32.2.2, reached `Identified`, loaded the Minecraft title-screen runtime, and exited normally with `BUILD SUCCESSFUL in 59s`.
+
+### Release
+
+- Promoted the completed OBS reliability roadmap section from `1.2.0-test7` to the stable `1.2.0` release.
+- Installable artifact: `build/libs/bddmod-1.2.0-all.jar`.
+- Release artifact SHA-256: `AC0EF2E7024AC3844818E18E4DF64B38A0EE4D13A82FA84D97353FCC0B7E2917`.
+
 ## 1.2.0-test6 — repeatable OBS settings
 
 ### User-facing changes

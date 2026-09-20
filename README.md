@@ -72,7 +72,7 @@ BDDMod
 ### 数据流
 
 1. `BDDMod` 在客户端注册 `ForgeConfigSpec`，并启动 `OBSMonitor`。
-2. `OBSMonitor` 使用 Java 17 内置 WebSocket 客户端连接本机 OBS WebSocket 5 服务，完成握手、认证和录制状态请求。
+2. `OBSMonitor` 使用随模组打包的阻塞式 WebSocket 客户端连接本机 OBS WebSocket 5 服务，完成握手、认证和录制状态请求。
 3. OBS 的 `RecordStateChanged` 事件实时更新内存中的录制状态；连接异常时自动回退并重试。
 4. `ClientEventHandler` 在客户端 Tick 中更新 `BDDSessionData`。
 5. HUD 渲染事件读取当前状态，在快捷栏上方绘制状态文本、计时和录制边缘反馈。
@@ -98,7 +98,7 @@ BDDMod
 
 ### 安装发行版
 
-1. 从 GitHub Releases 下载 `bddmod-1.1.0.jar`。
+1. 从 GitHub Releases 或本地构建产物中获取 `bddmod-1.2.0-all.jar`。
 2. 安装 Minecraft 1.20.1 对应的 Forge 47.x 客户端。
 3. 将 JAR 放入 Minecraft 的 `mods` 文件夹：
    - Windows：`%APPDATA%\\.minecraft\\mods`
@@ -119,7 +119,7 @@ BDDMod
 # 检查资源模板
 .\gradlew.bat processResources
 
-# 完整构建，产物位于 build/libs/
+# 完整构建；可安装产物为 build/libs/bddmod-<版本>-all.jar
 .\gradlew.bat build
 
 # 启动开发客户端
@@ -152,7 +152,7 @@ BDDMod
 | ForgeGradle | `[6.0,6.2)` |
 | Java Toolchain | `17` |
 | 映射 | Mojang Official `1.20.1` |
-| OBS WebSocket 运行时依赖 | 无额外依赖，使用 Java 17 内置 WebSocket 客户端 |
+| OBS WebSocket 运行时依赖 | 内置 `nv-websocket-client` 2.14，无需用户额外安装 |
 
 ## ⚙️ 配置
 
@@ -180,7 +180,7 @@ BDDMod
 
 ### OBS
 
-默认端口为 `4455`。1.1.0 使用 Java 17 内置 WebSocket 客户端连接 OBS WebSocket 5：
+默认端口为 `4455`。模组使用内置的阻塞式 WebSocket 客户端连接 OBS WebSocket 5，避免依赖主机的 Java NIO Selector：
 
 1. 在 OBS 中启用 WebSocket 服务，并确认端口与引导界面中的端口一致。
 2. 首次打开 Minecraft 时，在引导界面填写 OBS 端口和密码；之后可通过主菜单底部、无障碍按钮旁的录制图标随时重新打开，悬停会显示 `OBS 设置`。连接地址固定为 `127.0.0.1`。密码框使用掩码显示，保存到客户端配置后不会写入日志。
@@ -213,7 +213,7 @@ BDDMod
 
 ## 🗺️ 开发路线
 
-- [ ] 增强 OBS WebSocket 断线重连、错误提示和连接状态诊断。
+- [x] 增强 OBS WebSocket 断线重连、错误提示和连接状态诊断。
 - [ ] 接入 OBS 专用 FBO / RenderTarget 渲染链路。
 - [x] 建立独立 TextureTarget 的创建、尺寸同步、写入和安全回退诊断路径。
 - [ ] 增加仅对观众可见的局部模型变形、噪点和隐藏文字。
@@ -222,13 +222,16 @@ BDDMod
 - [ ] 增加兼容 Iris/Oculus 等渲染扩展的回退策略。
 - [ ] 补充自动化测试、运行截图和发行版工作流。
 
-## 🆕 1.1.0 更新摘要
+构建会同时生成不含内置依赖的开发薄包和带 `-all` 后缀的可安装包。安装时必须选择 `-all.jar`。
 
-- OBS 监控从临时 HTTP 状态探测升级为 OBS WebSocket 5。
-- 支持 OBS 录制开始/停止事件、密码认证和连接时的当前状态恢复。
+## 🆕 1.2.0 更新摘要
+
+- OBS WebSocket 改用随模组打包的阻塞式传输，避开部分 Windows 主机上的 Java NIO Selector 初始化故障。
+- 支持 OBS 录制开始/停止事件、密码认证、连接时的当前状态恢复和断线重连。
 - OBS 关闭、认证失败或断线时自动回到 `OBS STANDBY`，并在后台重连。
-- 使用 Java 17 内置 WebSocket 客户端，不再需要额外的 OBS/Jetty 运行时库。
-- 当前发行版：`build/libs/bddmod-1.1.0.jar`。
+- `CONNECTED` 只在 OBS 完成身份确认后显示，避免认证失败时短暂误报。
+- `nv-websocket-client` 已包含在发行 JAR 中，用户不需要额外安装依赖。
+- 当前正式版：`build/libs/bddmod-1.2.0-all.jar`。
 
 ## 📁 许可证与致谢
 

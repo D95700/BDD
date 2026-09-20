@@ -13,6 +13,12 @@
 - Keep technical implementation details concise and separate from the user-facing summary so the file can be reused when preparing the README and release notes.
 - Set `mod_authors` directly from the contributors' GitHub names. When there are multiple contributors, list the names with English commas and do not substitute a project or organization name.
 
+## Roadmap release policy
+
+- Completing a roadmap section is a formal release boundary: remove any `-test` prerelease suffix, advance the project version to the next appropriate stable version, and synchronize all user-facing version references.
+- For every completed roadmap section, run the full `build`, commit the completed section, push it to GitHub, and publish a GitHub Release with the installable `-all.jar` artifact.
+- Use prerelease/test versions only while a roadmap section is still under development; do not publish a completed section as a test release.
+
 ## Test logging
 
 - Store runtime test results in the repository-root file `TESTLOG.md`; the filename must remain fully uppercase.

@@ -38,7 +38,13 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    minecraftLibrary 'com.neovisionaries:nv-websocket-client:2.14'
+    jarJar('com.neovisionaries:nv-websocket-client:2.14') {
+        jarJar.ranged(it, '[2.14,3.0)')
+    }
 }
+
+jarJar.enable()
 
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [

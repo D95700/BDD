@@ -1,5 +1,147 @@
 # BDD Mod Test Log
 
+## 1.2.0-test7 real OBS identification follow-up
+
+- Test date: 2026-09-20
+- Test type: Forge development client runtime test - real OBS identification and authenticated connection status
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; .\gradlew.bat runClient --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - real OBS identification, client launch, and normal exit
+
+### Verified behaviors
+
+- The monitor established its blocking-socket transport connection to the running OBS Studio 32.2.2 service on `127.0.0.1:4455`.
+- OBS returned `Identified`; the log recorded `OBS WebSocket identified on 127.0.0.1:4455`, confirming that `CONNECTED` is now set after protocol identification and authentication rather than at the earlier transport handshake.
+- `bddmod` completed loading, reached the title-screen runtime, and created no new crash report.
+- The client closed normally after an explicit window-close request and Gradle reported `BUILD SUCCESSFUL in 59s`.
+
+### Not verified
+
+- Real OBS recording was not started or stopped in this short follow-up; recording transitions were covered by the immediately preceding simulator-backed run.
+- OBS/player visual frame separation remains outside this transport test.
+
+### Evidence and observations
+
+- Runtime logs: `run/logs/latest.log` and `run/logs/debug.log`.
+- Forge's version-check thread still reports the host Java NIO selector error independently of `bddmod`; it does not prevent mod loading or the blocking-socket OBS connection.
+
+## 1.2.0-test7 resilient OBS transport runtime result
+
+- Test date: 2026-09-20
+- Test type: Forge development client runtime test - OBS handshake, recording events, fallback, and reconnect
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; .\gradlew.bat runClient --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - client launch, OBS protocol flow, reconnect, and normal exit
+
+### Verified behaviors
+
+- `bddmod` loaded successfully and reached the Minecraft title-screen runtime without a mod-loading failure.
+- Against a localhost OBS WebSocket 5 simulator, the monitor completed Hello/Identify/Identified, sent `GetRecordStatus`, and processed both `RecordStateChanged` transitions. Evidence: `OBS recording state changed: RECORDING` followed by `STANDBY` in `run/logs/latest.log`.
+- After the simulator was stopped, the monitor detected the reset and automatically connected to the real OBS Studio 32.2.2 service on `127.0.0.1:4455` within the next retry interval.
+- The Java NIO selector failure still occurred in Forge's unrelated version-check thread, but it did not affect the new blocking-socket OBS transport or stop the game.
+- The client closed normally after an explicit window-close request and Gradle reported `BUILD SUCCESSFUL in 2m 3s`.
+
+### Not verified
+
+- A real OBS recording start/stop was not triggered; recording transitions were protocol-tested with the local simulator while real OBS verified live connection and reconnect behavior.
+- Authentication rejection status still requires a dedicated run with deliberately invalid credentials.
+- Player/OBS visual frame separation remains outside this transport milestone.
+
+### Evidence and observations
+
+- Runtime logs: `run/logs/latest.log` and `run/logs/debug.log`.
+- No new crash report was created by the successful run. The newest report remains the earlier dependency-classpath failure at `run/crash-reports/crash-2026-09-20_20.37.33-fml.txt`.
+- The simulator was a host-only ignored test helper under `build/tmp/`; it is not included in source control or the distributable JAR.
+
+## 1.2.0-test7 initial transport runtime attempt
+
+- Test date: 2026-09-20
+- Test type: Forge development client runtime test - bundled blocking WebSocket transport
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; .\gradlew.bat runClient --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: FAIL - the development runtime omitted the new WebSocket library from its classpath
+
+### Verified behaviors
+
+- Forge reached `bddmod` construction with version `1.2.0-test7`.
+- The preceding full build completed successfully and the distributable `build/libs/bddmod-1.2.0-test7-all.jar` contained both the nested library and valid Jar-in-Jar metadata.
+
+### Failure and evidence
+
+- Mod construction failed with `NoClassDefFoundError: com/neovisionaries/ws/client/WebSocketListener` because the dependency was initially declared on Gradle's generic `implementation` configuration rather than ForgeGradle's development-runtime `minecraftLibrary` configuration.
+- Runtime log: `run/logs/latest.log`.
+- Crash report: `run/crash-reports/crash-2026-09-20_20.37.33-fml.txt`.
+- OBS protocol behavior was not reached in this attempt. The dependency configuration was corrected before the next run.
+
+## 1.2.0-test6 OBS initialization recovery result
+
+- Test date: 2026-09-20
+- Test type: Forge development client runtime regression test - OBS HTTP client initialization failure containment
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; .\gradlew.bat runClient --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - client launch and mod loading; OBS monitoring remained unavailable on this host
+
+### Verified behaviors
+
+- `bddmod` completed construction and Forge finished the client loading lifecycle without a mod-loading error or new crash report.
+- The client completed resource loading and reached the Minecraft runtime; the integrated server also started and initialized its overworld.
+- The host's existing Java NIO error remained reproducible, but it was contained in the daemon `bddmod-obs-monitor` thread. The monitor stayed disconnected and retried without stopping Minecraft.
+- Full packaging passed before the runtime test with `BUILD SUCCESSFUL in 18s`; artifact: `build/libs/bddmod-1.2.0-test6.jar`.
+
+### Not verified
+
+- OBS WebSocket connectivity and recording-state updates could not be verified because this host could not create the Java HTTP client's internal loopback connection.
+- The compact OBS button's exact visual placement and click behavior were not independently inspected during this run.
+- Gameplay features were not exhaustively tested; the run verified startup and integrated-server initialization only.
+
+### Evidence and observations
+
+- Runtime logs: `run/logs/latest.log` and `run/logs/debug.log`.
+- The most recent crash report remains the pre-fix `run/crash-reports/crash-2026-09-20_20.03.08-fml.txt`; this run created no new crash report.
+- The main window closed after a close request, but the development process did not finish on its own and was interrupted from the Gradle terminal. No normal-exit claim is made for this run.
+- The runtime reported a saved-world version difference from `1.2.0-test5` to `1.2.0-test6`; this did not prevent integrated-server startup.
+
+## 1.2.0-test6 compact OBS button runtime result
+
+- Test date: 2026-09-20
+- Test type: Forge development client runtime test - compact OBS settings button
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; .\gradlew.bat runClient --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: FAIL - `bddmod` crashed during mod construction before the title screen became usable
+
+### Verified behaviors
+
+- Forge 47.4.10 launched the Minecraft 1.20.1 development client with Java 17.0.15.
+- The failure is reproducible during `bddmod` construction: static initialization of `OBSMonitor` attempted to create a Java HTTP client and failed with `Unable to establish loopback connection`.
+- The client stopped after Forge displayed the mod-loading failure. Gradle reported `BUILD SUCCESSFUL in 1m 15s`, but this does not represent a successful game launch.
+
+### Not verified
+
+- The compact OBS settings button's placement, tooltip, click behavior, and settings-screen navigation were not reached or visually verified.
+- Gameplay, OBS connection, recording-state synchronization, and render routing were not exercised in this run.
+
+### Evidence and observations
+
+- Runtime log: `run/logs/latest.log`.
+- Crash report: `run/crash-reports/crash-2026-09-20_20.03.08-fml.txt`.
+- Root cause location: `src/main/java/com/example/bddmod/client/OBSMonitor.java:45`.
+- Underlying environment error: `java.net.SocketException: Invalid argument: connect` while Java NIO attempted to establish its internal loopback connection.
+
 ## 1.2.0-test6 runtime result
 
 - Test date: 2026-09-20
