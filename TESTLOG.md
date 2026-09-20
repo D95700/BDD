@@ -1,5 +1,32 @@
 # BDD Mod Test Log
 
+## 1.3.0.dev3 audience window orientation runtime
+
+- Test date: 2026-09-21
+- Test type: Forge development-client runtime test - audience output texture orientation and recording fallback
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args='--quickPlaySingleplayer "新的世界"' --init-script build\tmp\codex-direct-javac.init.gradle` with a temporary local WebSocket 5 endpoint at `127.0.0.1:4455`
+- Result: PASS - client startup, dev3 metadata loading, corrected audience output orientation path, shared-context presentation, and normal shutdown
+
+### Verified behaviors
+
+- The fullscreen audience quad now maps RenderTarget V coordinates from 0.0 at the lower edge to 1.0 at the upper edge, correcting the previous vertical inversion.
+- The client loaded mod version `1.3.0.dev3`, entered the single-player world, and rendered on AMD Radeon RX 6750 GRE OpenGL 4.6 / LWJGL 3.3.1.
+- The local OBS protocol endpoint reported `RECORDING`; the route created the `854x480` audience target and opened the `BDD Audience Output` window without shader or OpenGL errors.
+- The temporary endpoint was stopped; the run saved the world and shut down normally. The diagnostic setting was restored to `renderRouteTestEnabled = false`.
+
+### Not verified
+
+- A pixel-by-pixel comparison against an OBS window-source capture was not performed; the runtime log verifies the corrected coordinate path and successful presentation, while direct visual confirmation remains a manual OBS capture step.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log` and `run/logs/debug.log` after the dev3 client run.
+- Installable artifact: `build/libs/bddmod-1.3.0.dev3-all.jar`, SHA-256 `B5D6C00B2A117F3A37F3CE223A71D2E72DA73FFA888B1F1539C49919CF46B0DA`.
+
 ## 1.3.0.dev2 audience-only grain runtime
 
 - Test date: 2026-09-21

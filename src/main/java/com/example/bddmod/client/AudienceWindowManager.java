@@ -203,10 +203,10 @@ public final class AudienceWindowManager {
         timeUniform = GL20.glGetUniformLocation(program, "Time");
 
         float[] vertices = {
-                -1.0F, -1.0F, 0.0F, 1.0F,
-                 1.0F, -1.0F, 1.0F, 1.0F,
-                 1.0F,  1.0F, 1.0F, 0.0F,
-                -1.0F,  1.0F, 0.0F, 0.0F
+                -1.0F, -1.0F, 0.0F, 0.0F,
+                 1.0F, -1.0F, 1.0F, 0.0F,
+                 1.0F,  1.0F, 1.0F, 1.0F,
+                -1.0F,  1.0F, 0.0F, 1.0F
         };
         int[] indices = {0, 1, 2, 2, 3, 0};
         vao = GL30.glGenVertexArrays();

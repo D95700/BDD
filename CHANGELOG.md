@@ -2,6 +2,18 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.3.0.dev3 — audience window orientation fix
+
+### User-facing changes
+
+- Fixed the `BDD Audience Output` window being displayed upside down; its image orientation now matches the player's Minecraft window.
+- Retained the dev2 audience-only grain and dark-red edge tint without changing the player's main view.
+
+### Technical behavior and verification
+
+- Corrected the fullscreen quad's vertical texture coordinates for Minecraft's RenderTarget texture orientation.
+- Development version advanced to `1.3.0.dev3`; build and runtime verification are recorded in `TESTLOG.md`.
+
 ## 1.3.0.dev2 — audience-only grain pass
 
 ### User-facing changes
