@@ -6,11 +6,11 @@
 
 ![Minecraft 1.20.1](https://img.shields.io/badge/Minecraft-1.20.1-3C8527?style=flat-square&logo=minecraft&logoColor=white)
 ![Forge 47.4.10](https://img.shields.io/badge/Forge-47.4.10-orange?style=flat-square)
-![Version 1.3.0.dev1](https://img.shields.io/badge/version-1.3.0.dev1-4C9AFF?style=flat-square)
+![Version 1.3.0.dev2](https://img.shields.io/badge/version-1.3.0.dev2-4C9AFF?style=flat-square)
 ![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Client Only](https://img.shields.io/badge/side-client--only-6C63FF?style=flat-square)
 
-**BDD Local Client 1.3.0.dev1** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组开发版本。
+**BDD Local Client 1.3.0.dev2** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组开发版本。
 它通过简洁的 HUD、OBS 录制状态反馈和本地会话统计，营造“玩家所见”与“观众所见”之间逐渐产生偏差的心理恐怖氛围。
 
 </div>
@@ -43,7 +43,7 @@ BDD Local Client 的设计重点不是传统的怪物或跳脸惊吓，而是把
 | 同步虚拟音频 | ✅ | 录制时向配置的虚拟设备输出轻微呼吸与心跳，并与脉络使用同一相位时钟 |
 | 本地信息快照 | 🧩 | 仅提供用户名、操作系统和当前时间的内存快照 |
 | FBO 与观众窗口诊断 | 🧪 | 测试模式开启时创建 `BDD Audience Output` 独立窗口，并通过共享 OpenGL 上下文显示观众 RenderTarget；面板报告窗口状态，适合 OBS 窗口源捕获 |
-| 观众专用模型扭曲 / 噪点 / 隐藏文字 | 🚧 | 当前观众窗口先镜像已渲染的玩家画面，原生交换缓冲钩子和观众专用效果仍在规划中 |
+| 观众专用模型扭曲 / 隐藏文字 | 🚧 | 观众窗口已经加入轻微动态噪点和暗红边缘色偏；模型扭曲、隐藏文字和原生交换缓冲钩子仍在规划中 |
 
 ### HUD 示例
 
@@ -101,7 +101,7 @@ BDDMod
 
 ### 安装发行版
 
-1. 开发测试使用本地构建产物 `bddmod-1.3.0.dev1-all.jar`；普通安装仍推荐 GitHub Releases 中的 `bddmod-1.2.1-all.jar`。
+1. 开发测试使用本地构建产物 `bddmod-1.3.0.dev2-all.jar`；普通安装仍推荐 GitHub Releases 中的 `bddmod-1.2.1-all.jar`。
 2. 安装 Minecraft 1.20.1 对应的 Forge 47.x 客户端。
 3. 将 JAR 放入 Minecraft 的 `mods` 文件夹：
    - Windows：`%APPDATA%\\.minecraft\\mods`
@@ -226,13 +226,14 @@ BDDMod
 
 构建会同时生成不含内置依赖的开发薄包和带 `-all` 后缀的可安装包。安装时必须选择 `-all.jar`。
 
-## 🧪 1.3.0.dev1 开发进度
+## 🧪 1.3.0.dev2 开发进度
 
 - 新增独立的观众 RenderTarget 管理器，统一负责创建、像素尺寸同步、帧缓冲绑定、主目标恢复和显式释放。
 - 新增共享 OpenGL 上下文的 `BDD Audience Output` 独立窗口，将观众 RenderTarget 纹理呈现为可被 OBS 窗口源捕获的画面。
+- 新增仅作用于观众窗口的轻微动态噪点和暗红边缘色偏，强度跟随录制脉络的共享节奏。
 - 渲染失败后会熔断观众目标而不影响玩家主画面；停止录制或关闭诊断时会释放目标并允许下一次重新初始化。
-- 当前窗口先镜像玩家已渲染画面，尚未加入观众专用模型扭曲、噪点或隐藏文字。
-- 当前开发构建：`build/libs/bddmod-1.3.0.dev1-all.jar`；当前 GitHub 正式版仍为 `1.2.1`。
+- 当前窗口仍镜像玩家已渲染画面，尚未加入观众专用模型扭曲或隐藏文字。
+- 当前开发构建：`build/libs/bddmod-1.3.0.dev2-all.jar`；当前 GitHub 正式版仍为 `1.2.1`。
 
 ## 🆕 1.2.1 正式版摘要
 

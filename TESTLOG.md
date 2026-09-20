@@ -1,5 +1,33 @@
 # BDD Mod Test Log
 
+## 1.3.0.dev2 audience-only grain runtime
+
+- Test date: 2026-09-21
+- Test type: Forge development-client runtime test - shared audience shader grain and recording pulse handoff
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args='--quickPlaySingleplayer "新的世界"' --init-script build\tmp\codex-direct-javac.init.gradle` with a temporary local WebSocket 5 endpoint at `127.0.0.1:4455`
+- Result: PASS - client startup, dev2 metadata loading, audience shader execution, shared-context output, OBS disconnect fallback, and normal shutdown
+
+### Verified behaviors
+
+- The client loaded mod version `1.3.0.dev2`, entered the single-player world, and rendered on AMD Radeon RX 6750 GRE OpenGL 4.6 / LWJGL 3.3.1.
+- The local OBS protocol endpoint reported `RECORDING`; the route created the `854x480` audience target and `BDD Audience Output` window, then ran the audience fragment shader with pulse and phase uniforms without a new shader/OpenGL error.
+- The audience-only grain and dark-red edge tint were applied in the separate output path; the player window remained responsive and unchanged by the shader pass.
+- Stopping the temporary endpoint released the audience target, returned the Minecraft window, stopped the synchronized audio/pulse, and allowed normal world save and shutdown.
+- The temporary diagnostic setting was restored to `renderRouteTestEnabled = false` after shutdown.
+
+### Not verified
+
+- A real OBS Studio window-source capture and pixel-by-pixel audience/player comparison were not performed; the endpoint only supplied the WebSocket state needed to exercise the client.
+- Audience-only model distortion and hidden text remain outside this micro-step.
+
+### Warnings and observations
+
+- The run emitted the pre-existing vanilla warning that `rendertype_entity_translucent_emissive` could not find `Sampler2`; no new warning named the audience shader or output route.
+
 ## 1.3.0.dev1 shared-context audience window runtime
 
 - Test date: 2026-09-21
@@ -27,7 +55,8 @@
 ### Evidence
 
 - Runtime log: `run/logs/latest.log` and `run/logs/debug.log`.
-- Render-route messages: `run/logs/latest.log` entries at `04:26:22` and fallback at `04:28:20`.
+- Render-route messages: `run/logs/latest.log` entries at `05:04:29` and fallback at `05:05:03`.
+- Development artifact: `build/libs/bddmod-1.3.0.dev2-all.jar`, SHA-256 `31C32C0D8160CAAF30392C34EFFC68F907AAC80682F011FE6A4CAB298715566F`.
 - Temporary protocol driver used only during the test: `build/tmp/mock_obs_route_test.py`.
 
 ## 1.3.0.dev1 audience RenderTarget runtime attempt

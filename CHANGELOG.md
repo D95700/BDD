@@ -2,6 +2,19 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.3.0.dev2 — audience-only grain pass
+
+### User-facing changes
+
+- Added a subtle animated grain layer to the `BDD Audience Output` window; it is visible to OBS viewers while the player's Minecraft window remains unchanged.
+- The grain strength follows the existing recording pulse and adds a restrained dark-red edge tint without covering the center view.
+- The effect is part of the diagnostic audience route and automatically disappears when recording stops or the audience window is released.
+
+### Technical behavior and verification
+
+- Applied the audience-only effect in the shared-window fragment shader after the main color buffer is copied, keeping the player framebuffer untouched.
+- Development version advanced to `1.3.0.dev2`; build and runtime verification are recorded in `TESTLOG.md`.
+
 ## 1.3.0.dev1 — audience render-target lifecycle
 
 ### User-facing changes

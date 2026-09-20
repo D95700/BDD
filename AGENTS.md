@@ -49,6 +49,12 @@
 - Published versions are immutable. After a tag or release is published, never replace its code, resources, metadata, or artifact; make every subsequent published change under a new version.
 - Keep `gradle.properties`, generated mod metadata, README badges and download names, changelog headings, Git tags, GitHub Release titles, and JAR filenames synchronized to the same version.
 
+## Roadmap step versioning
+
+- Give every independently verifiable roadmap micro-step its own monotonically increasing development version, even when multiple micro-steps belong to one larger roadmap section.
+- Bump `mod_version` before implementing the next micro-step and synchronize that version in the README, changelog heading, generated metadata, test records, and installable `-all.jar` filename.
+- Do not combine separate micro-steps under one development version. Preserve each micro-step's installable `-all.jar` so the completed roadmap section can publish the full sequence together.
+
 ## Test logging
 
 - Store runtime test results in the repository-root file `TESTLOG.md`; the filename must remain fully uppercase.

@@ -30,9 +30,24 @@ public final class AudienceWindowManager {
             + "void main() { gl_Position = vec4(Position, 0.0, 1.0); TexCoord = UV; }\n";
     private static final String FRAGMENT_SHADER = "#version 150\n"
             + "uniform sampler2D Texture;\n"
+            + "uniform float Pulse;\n"
+            + "uniform float Time;\n"
             + "in vec2 TexCoord;\n"
             + "out vec4 FragColor;\n"
-            + "void main() { FragColor = texture(Texture, TexCoord); }\n";
+            + "float hash(vec2 value) {\n"
+            + "    return fract(sin(dot(value, vec2(12.9898, 78.233))) * 43758.5453);\n"
+            + "}\n"
+            + "void main() {\n"
+            + "    vec4 source = texture(Texture, TexCoord);\n"
+            + "    vec2 block = floor(TexCoord * vec2(160.0, 90.0));\n"
+            + "    float grain = hash(block + vec2(floor(Time * 24.0))) - 0.5;\n"
+            + "    float edge = 1.0 - smoothstep(0.0, 0.32, min(min(TexCoord.x, 1.0 - TexCoord.x),\n"
+            + "            min(TexCoord.y, 1.0 - TexCoord.y)));\n"
+            + "    float amount = (0.004 + 0.018 * Pulse) * (0.15 + 0.85 * edge);\n"
+            + "    vec3 color = source.rgb + vec3(grain * amount);\n"
+            + "    color += vec3(0.018, 0.0, 0.0) * edge * Pulse;\n"
+            + "    FragColor = vec4(color, source.a);\n"
+            + "}\n";
 
     private static long window;
     private static long minecraftWindow;
@@ -42,6 +57,9 @@ public final class AudienceWindowManager {
     private static int vao;
     private static int vertexBuffer;
     private static int indexBuffer;
+    private static int textureUniform;
+    private static int pulseUniform;
+    private static int timeUniform;
     private static boolean failed;
     private static int windowWidth;
     private static int windowHeight;
@@ -68,7 +86,9 @@ public final class AudienceWindowManager {
                 releaseWindow(mainHandle);
                 return false;
             }
-            drawTexture(mainHandle, target.getColorTextureId());
+            drawTexture(mainHandle, target.getColorTextureId(),
+                    (float) RecordingPulseController.visualLevel(),
+                    (float) RecordingPulseController.phase());
             return true;
         } catch (Throwable throwable) {
             failed = true;
@@ -133,7 +153,7 @@ public final class AudienceWindowManager {
                 windowWidth, windowHeight, WINDOW_TITLE);
     }
 
-    private static void drawTexture(long mainHandle, int textureId) {
+    private static void drawTexture(long mainHandle, int textureId, float pulse, float phase) {
         GLFW.glfwMakeContextCurrent(window);
         GL.setCapabilities(audienceCapabilities);
         refreshWindowSize();
@@ -151,7 +171,9 @@ public final class AudienceWindowManager {
         GL30.glBindVertexArray(vao);
         GL13Compat.activeTexture0();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
-        GL20.glUniform1i(GL20.glGetUniformLocation(program, "Texture"), 0);
+        GL20.glUniform1i(textureUniform, 0);
+        GL20.glUniform1f(pulseUniform, pulse);
+        GL20.glUniform1f(timeUniform, phase);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
         GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0L);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -176,6 +198,9 @@ public final class AudienceWindowManager {
         }
         GL20.glDeleteShader(vertexShader);
         GL20.glDeleteShader(fragmentShader);
+        textureUniform = GL20.glGetUniformLocation(program, "Texture");
+        pulseUniform = GL20.glGetUniformLocation(program, "Pulse");
+        timeUniform = GL20.glGetUniformLocation(program, "Time");
 
         float[] vertices = {
                 -1.0F, -1.0F, 0.0F, 1.0F,
@@ -257,6 +282,9 @@ public final class AudienceWindowManager {
         vertexBuffer = 0;
         indexBuffer = 0;
         vao = 0;
+        textureUniform = -1;
+        pulseUniform = -1;
+        timeUniform = -1;
         windowWidth = 0;
         windowHeight = 0;
         restoreMinecraftContextIfPossible(mainHandle);
