@@ -235,8 +235,8 @@ BDDMod
 
 ## 📁 许可证与致谢
 
-- 本项目当前版本元数据标记为 **All Rights Reserved**；未经作者许可，请勿重新发布、商用或制作衍生发行版。
-- 仓库中的 Forge/MDK 相关内容遵循项目内 `LICENSE.txt` 中列出的许可与第三方声明。
+- 本项目自主编写的代码与资源采用 [WTFPL v2](LICENSE) 许可。
+- Forge/MDK、内置依赖及其他第三方内容仍遵循各自的许可；相关声明保留在 `THIRD_PARTY_LICENSES.txt`、`CREDITS.txt` 和依赖包中。
 - Minecraft、Minecraft Forge、OBS 和 VB-CABLE/Voicemeeter 均为其各自权利人的项目或商标，本项目与 Mojang、Microsoft、OBS Project 或相关音频软件开发者没有隶属关系。
 
 ## 💬 反馈与贡献

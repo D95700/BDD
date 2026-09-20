@@ -2,6 +2,20 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## Unreleased — project license
+
+### User-facing changes
+
+- Relicensed the project's original code and resources from `All Rights Reserved` to the WTFPL v2.
+- Added a standard root `LICENSE` so GitHub and local tooling can identify the project license as `WTFPL`.
+- Preserved the existing Forge/LGPL and other third-party terms in `THIRD_PARTY_LICENSES.txt`; third-party components are not relicensed.
+- Packaged both the project license and third-party notices under the distributable JAR's `META-INF/` directory.
+
+### Compatibility and verification
+
+- Updated the generated mod metadata license value to `WTFPL`; gameplay behavior and compatibility are unchanged.
+- The full `build` passed; the generated metadata reports `WTFPL`, and both license files are present in the installable `-all.jar`.
+
 ## 1.2.0 — resilient OBS transport
 
 ### User-facing changes

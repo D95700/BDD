@@ -56,6 +56,14 @@ tasks.named('processResources', ProcessResources).configure {
     ]
     inputs.properties replaceProperties
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) { expand replaceProperties + [project: project] }
+    from(rootProject.file('LICENSE')) {
+        into 'META-INF'
+        rename { 'LICENSE-bddmod.txt' }
+    }
+    from(rootProject.file('THIRD_PARTY_LICENSES.txt')) {
+        into 'META-INF'
+        rename { 'THIRD_PARTY_LICENSES-bddmod.txt' }
+    }
 }
 
 tasks.named('jar', Jar).configure {
