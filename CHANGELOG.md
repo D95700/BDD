@@ -2,6 +2,19 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## Unreleased — version naming policy
+
+### Project workflow changes
+
+- Added a self-contained version naming standard to `AGENTS.md`, covering stable, development, Alpha, Beta, RC, and Release versions without requiring an external reference.
+- Defined numeric increment and reset rules for major, minor, and patch releases, plus ordering, optional date components, and the meaning of each development stage.
+- Replaced the previous ad hoc `-testN` convention for future work with `.devN`, `.aN`, `.bN`, and `.cN` identifiers.
+- Declared published tags, release metadata, and artifacts immutable; any later published change must use a new version.
+
+### Verification
+
+- Documentation-only change; verified that the local policy contains no external source URL and can be followed offline.
+
 ## Unreleased — README version sync
 
 ### User-facing changes

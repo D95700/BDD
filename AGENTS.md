@@ -15,9 +15,24 @@
 
 ## Roadmap release policy
 
-- Completing a roadmap section is a formal release boundary: remove any `-test` prerelease suffix, advance the project version to the next appropriate stable version, and synchronize all user-facing version references.
+- Completing a roadmap section is a formal release boundary: remove any development or prerelease suffix, advance the project version to the next appropriate stable version, and synchronize all user-facing version references.
 - For every completed roadmap section, run the full `build`, commit the completed section, push it to GitHub, and publish a GitHub Release with the installable `-all.jar` artifact.
-- Use prerelease/test versions only while a roadmap section is still under development; do not publish a completed section as a test release.
+- Use only the development and prerelease formats defined below while a roadmap section is still under development; do not publish a completed section as a test release.
+
+## Version naming
+
+- Stable versions use `MAJOR.MINOR.PATCH`, for example `1.2.0`. All three parts are non-negative integers without leading zeroes. Compare them numerically from left to right, so `1.9.0 < 1.10.0 < 1.11.0`.
+- Increment `MAJOR` for incompatible API changes, major module changes, or architectural changes. Reset `MINOR` and `PATCH` to `0` at the same time.
+- Increment `MINOR` for compatible feature additions, meaningful behavior changes, or deprecations. Reset `PATCH` to `0` at the same time.
+- Increment `PATCH` for compatible bug fixes and small changes. A severe bug fix is sufficient reason for a patch release.
+- A `0.y.z` version denotes initial development and potentially unstable APIs. `1.0.0` and later denote an established stable API unless a development or prerelease suffix is present.
+- Development builds use `MAJOR.MINOR.PATCH.devN`, where `N` is a positive, monotonically increasing integer, for example `1.3.0.dev4`.
+- Prereleases use `MAJOR.MINOR.PATCH.aN`, `.bN`, or `.cN`, where `N` is a positive, monotonically increasing integer. `a` means Alpha, `b` means Beta, and `c` means Release Candidate. Do not create new `-testN` versions.
+- Stage meanings are: Base for an incomplete foundation, Alpha for internal feature implementation with known defects, Beta for public testing after severe defects are removed but features may still change, RC for a near-final release candidate, and Release for the stable user-facing build. Stable Release versions omit the stage suffix.
+- Development and prerelease versions sort before their matching stable release. For matching numeric parts, letter stages sort by ASCII order, for example `1.3.0.a1 < 1.3.0.b1 < 1.3.0.c1 < 1.3.0`.
+- If a date-qualified build is explicitly required, use `MAJOR.MINOR.PATCH.YYYYMMDD_STAGE`, for example `1.3.0.20260920_beta`. The date is eight digits and must change on each calendar day that changes are made; `STAGE` is `base`, `alpha`, `beta`, `rc`, or `release`. Normal project releases omit both the date and textual stage and use `MAJOR.MINOR.PATCH`.
+- Published versions are immutable. After a tag or release is published, never replace its code, resources, metadata, or artifact; make every subsequent published change under a new version.
+- Keep `gradle.properties`, generated mod metadata, README badges and download names, changelog headings, Git tags, GitHub Release titles, and JAR filenames synchronized to the same version.
 
 ## Test logging
 
