@@ -82,9 +82,7 @@ public final class ClientEventHandler {
     public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
         event.registerAboveAll("route_test_diagnostic", (gui, graphics, partialTick, width, height) -> {
             Minecraft minecraft = Minecraft.getInstance();
-            if (Config.RENDER_ROUTE_TEST_ENABLED.get()) {
-                RenderRouteTestRenderer.render(graphics, minecraft, OBSMonitor.isRecording());
-            }
+            RenderRouteTestRenderer.render(graphics, minecraft, OBSMonitor.isRecording());
         });
     }
 

@@ -2,6 +2,20 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.3.0.dev1 — audience render-target lifecycle
+
+### User-facing changes
+
+- Began the next roadmap section with a dedicated audience RenderTarget manager; default gameplay remains unchanged because no OBS output window or audience-only effect is connected yet.
+- The diagnostic panel now reports the managed audience framebuffer state and pixel dimensions.
+- Stopping OBS recording or disabling the diagnostic releases the audience framebuffer so a later recording can initialize a fresh target.
+
+### Technical behavior and verification
+
+- Centralized framebuffer creation, resize, render-thread binding, main-target restoration, cleanup, and failure isolation outside the diagnostic renderer.
+- A failed audience pass is disabled without taking down Minecraft's main render target; releasing the manager clears the failure state for a future retry.
+- Development version advanced to `1.3.0.dev1`; `compileJava`, `processResources`, and the full `build` passed. The installable artifact is `build/libs/bddmod-1.3.0.dev1-all.jar`.
+
 ## 1.2.1 — synchronized recording pulse
 
 ### User-facing changes

@@ -1,5 +1,32 @@
 # BDD Mod Test Log
 
+## 1.3.0.dev1 audience RenderTarget runtime attempt
+
+- Test date: 2026-09-21
+- Test type: Forge development-client startup attempt for audience RenderTarget lifecycle
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: FAIL - the checked-in Gradle Wrapper could not start because its distribution lock was denied; Minecraft did not launch and no FBO runtime behavior is claimed
+
+### Verified behaviors
+
+- `compileJava`, `processResources`, and the full `build` passed before this runtime attempt.
+- The resulting artifact is `build/libs/bddmod-1.3.0.dev1-all.jar`, SHA-256 `6A6800479915AF719538CC6DF8C0F6B407384F3E8F0E8A58ED2C7E4F6A96FF23`.
+- The ignored diagnostic setting was restored to `renderRouteTestEnabled = false` after the attempt.
+
+### Failure and observations
+
+- Gradle stopped at `ExclusiveFileAccessManager` with `FileNotFoundException` for `C:UsersAdministrator/.gradle/wrapper/dists/gradle-8.8-bin/dl7vupf4psengwqhwktix4v1/gradle-8.8-bin.zip.lck` and did not create a Minecraft process.
+- Directly invoking the cached Gradle distribution was also unavailable because its Windows native service could not load `native-platform.dll`.
+
+### Evidence
+
+- Wrapper output: `build/tmp/runclient-1.3.0.dev1.err.log`.
+- Previous successful package output: `build/libs/bddmod-1.3.0.dev1-all.jar`.
+
 ## 1.2.1 stable release packaging
 
 - Test date: 2026-09-21
