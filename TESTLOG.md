@@ -1,5 +1,43 @@
 # BDD Mod Test Log
 
+## 1.3.0-alpha.5 repair runtime and audience-frame verification
+
+- Test date: 2026-09-22
+- Test type: Forge development-client runtime test - repaired breathing cadence, held randomized head effects, and direct audience-frame capture
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Runtime command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable -Dbddmod.testThirdPerson=true -Dbddmod.testAudienceCaptureDirectory=E:/MOD/forge-1.20.1-47.4.10-mdk/build/tmp/alpha5-capture'; .\gradlew.bat runClient --args="--quickPlaySingleplayer 新的世界" --init-script build\tmp\codex-direct-javac.init.gradle` with an isolated mock OBS endpoint at `127.0.0.1:4456`
+- Build command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat build --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - repaired runtime branches, all three audience head modes, direct OpenGL audience-frame inspection, resource validation, final compilation, packaging, and normal client shutdown
+
+### Verified behaviors
+
+- The client loaded `1.3.0-alpha.5`, connected to the isolated mock OBS endpoint, created the `854x480` audience target, and routed the mock capture source to `BDD Audience Output:GLFW30:java.exe`.
+- The new breathing asset is a 2.18-second, 48 kHz mono Vorbis phrase with distinct inhale, pause, exhale, and silence segments; the runtime starts it once per three-second pulse cycle instead of looping a continuous noise bed.
+- Head modes now hold for two seconds in a shuffled sequence. Runtime evidence recorded `MOSAIC` at `01:57:05`, `DISTORTION` at `01:57:07`, and `DEFORMATION` at `01:57:09`.
+- Direct PNG reads from the audience OpenGL back buffer confirmed visible results: large block mosaic, clearly visible radial swirl, and strong horizontal deformation localized to the player's head. The hidden `WE SEE YOU` message was also visible in the deformation capture.
+- The final client exited normally. No new crash report, audience OpenGL failure, or shader exception was produced.
+- The final source after removing the temporary third-person and frame-dump hooks completed `build`; Gradle reported `test NO-SOURCE`.
+
+### Test-only instrumentation
+
+- The runtime command temporarily enabled a JVM-gated third-person switch and a frame-dump directory. Both hooks were removed before the final build and are absent from the packaged source.
+- The mock OBS endpoint used port `4456` so the real OBS process on `4455` remained untouched; the repository test configuration was restored to `4455` afterwards.
+
+### Not covered
+
+- The revised breathing sound was structurally validated and included in the build, but the user did not perform a second listening acceptance after the alpha.5 asset replacement in this run.
+- A long real-OBS recording of the repaired build was not produced; direct audience back-buffer PNGs verified the effect pixels independently of OBS encoding.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log`, including audience route and mode timestamps around `01:57:04-01:57:09`.
+- Direct audience frames: `build/tmp/alpha5-capture/head-mode-0.png`, `head-mode-1.png`, and `head-mode-2.png`.
+- Breath asset inspection: `src/main/resources/assets/bddmod/sounds/recording_breath.ogg`, 2.18 seconds, 48 kHz mono Vorbis.
+- Final installable artifact: `build/libs/bddmod-1.3.0-alpha.5-all.jar`, SHA-256 `687C8C9C8DADB7C5E2E4876153062561399A50154C745E09FF840F3DB6548715`.
+
 ## 1.3.0-alpha.4 user visual acceptance
 
 - Test date: 2026-09-22

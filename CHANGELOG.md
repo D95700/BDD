@@ -19,6 +19,26 @@ This file records user-facing changes for the README, visual-design, and release
 - Added SemVer rules for `MAJOR.MINOR.PATCH`, hyphenated prereleases, optional plus-prefixed build metadata, numeric identifiers without leading zeroes, and version precedence.
 - Kept all existing `1.3.0.dev*` and earlier versions as immutable historical artifacts; no existing tag, release, or JAR is renamed.
 
+## 1.3.0-alpha.5 — visible audience effects and distinct breathing cadence
+
+### User-facing changes
+
+- Fixed the audience head treatments being effectively invisible in recorded footage: each randomly ordered mode now remains stable for two seconds, uses a larger head mask, and applies visibly stronger mosaic, radial distortion, or deformation.
+- Kept close third-person head views eligible for processing instead of rejecting them when the projected head occupies a large part of the frame.
+- Replaced the continuous wind-like breathing bed with a single inhale, pause, exhale, and silent-rest phrase played once per shared three-second pulse cycle.
+- Increased the audience-only localized distortion, grain, red edge tint, and hidden-message visibility enough to support visual acceptance without adding them to the player's Minecraft window.
+
+### Configuration and compatibility
+
+- Existing OBS, terror-mode, and recording-audio settings remain compatible; no new configuration key is required.
+- Version advanced to `1.3.0-alpha.5`; `README.md` remains unchanged under the post-release synchronization policy.
+
+### Technical behavior and verification
+
+- Random head modes are shuffled in groups of three, guaranteeing every treatment appears during each six-second sequence while avoiding frame-by-frame flicker.
+- Real OBS footage from the failed alpha.4 acceptance run was decoded and inspected to confirm the route contained valid game frames but did not show a usable head treatment.
+- Build and runtime verification are recorded in `TESTLOG.md`.
+
 ## 1.3.0-alpha.4 — randomized audience-only player-head effects
 
 ### User-facing changes

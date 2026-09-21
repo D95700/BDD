@@ -72,8 +72,14 @@ public final class RecordingPulseController {
 
     static double breathEnvelopeAt(long timeNanos) {
         double phase = phaseAt(timeNanos);
-        double arc = Math.sin(Math.PI * phase);
-        return 0.15D + 0.85D * Math.pow(Math.max(0.0D, arc), 1.4D);
+        if (phase < 0.22D) {
+            return Math.pow(Math.sin(Math.PI * phase / 0.22D), 1.2D) * 0.72D;
+        }
+        if (phase >= 0.29D && phase < 0.72D) {
+            double exhalePhase = (phase - 0.29D) / 0.43D;
+            return Math.pow(Math.sin(Math.PI * exhalePhase), 0.85D);
+        }
+        return 0.0D;
     }
 
     static double heartbeatEnvelopeAt(long timeNanos) {

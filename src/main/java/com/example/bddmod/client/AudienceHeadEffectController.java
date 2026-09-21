@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /** Tracks the local player's projected head for the audience-only post-process. */
 public final class AudienceHeadEffectController {
@@ -21,11 +22,15 @@ public final class AudienceHeadEffectController {
     public static final int DISTORTION = 1;
     public static final int DEFORMATION = 2;
     private static final int EFFECT_COUNT = 3;
+    private static final long MODE_HOLD_NANOS = TimeUnit.SECONDS.toNanos(2L);
     private static final Random RANDOM = new Random();
     private static final boolean[] MODE_LOGGED = new boolean[EFFECT_COUNT];
+    private static final int[] MODE_SEQUENCE = {MOSAIC, DISTORTION, DEFORMATION};
 
     private static boolean active;
     private static int mode;
+    private static int modeSequenceIndex = EFFECT_COUNT;
+    private static long nextModeChangeNanos;
     private static float centerX;
     private static float centerY;
     private static float radiusX;
@@ -62,16 +67,20 @@ public final class AudienceHeadEffectController {
         float projectedRadiusX = Math.abs(horizontal.x - center.x);
         float projectedRadiusY = Math.abs(vertical.y - center.y);
         if (projectedRadiusX < 0.006F || projectedRadiusY < 0.006F
-                || projectedRadiusX > 0.45F || projectedRadiusY > 0.45F) {
+                || projectedRadiusX > 1.25F || projectedRadiusY > 1.25F) {
             return;
         }
 
         active = true;
-        mode = RANDOM.nextInt(EFFECT_COUNT);
+        long now = System.nanoTime();
+        if (now >= nextModeChangeNanos) {
+            mode = nextMode();
+            nextModeChangeNanos = now + MODE_HOLD_NANOS;
+        }
         centerX = center.x;
         centerY = center.y;
-        radiusX = projectedRadiusX * 1.35F;
-        radiusY = projectedRadiusY * 1.35F;
+        radiusX = Math.min(1.25F, projectedRadiusX * 1.60F);
+        radiusY = Math.min(1.25F, projectedRadiusY * 1.60F);
         if (!MODE_LOGGED[mode]) {
             MODE_LOGGED[mode] = true;
             LOGGER.info("Audience player-head effect active: mode={}, center=({}, {}), radius=({}, {})",
@@ -140,6 +149,19 @@ public final class AudienceHeadEffectController {
             case DEFORMATION -> "DEFORMATION";
             default -> "UNKNOWN";
         };
+    }
+
+    private static int nextMode() {
+        if (modeSequenceIndex >= EFFECT_COUNT) {
+            for (int index = EFFECT_COUNT - 1; index > 0; index--) {
+                int swapIndex = RANDOM.nextInt(index + 1);
+                int value = MODE_SEQUENCE[index];
+                MODE_SEQUENCE[index] = MODE_SEQUENCE[swapIndex];
+                MODE_SEQUENCE[swapIndex] = value;
+            }
+            modeSequenceIndex = 0;
+        }
+        return MODE_SEQUENCE[modeSequenceIndex++];
     }
 
     private record Projection(float x, float y) {
