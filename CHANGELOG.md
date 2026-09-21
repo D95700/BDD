@@ -37,6 +37,24 @@ This file records user-facing changes for the README, visual-design, and release
 - The verifier checks SemVer metadata, embedded mod version, WTFPL license, bundled `nv-websocket-client-2.14`, required resources, and SHA-256 output.
 - Runtime screenshots remain a manual client-test responsibility and must be recorded in `TESTLOG.md`; CI does not require a graphical desktop or live OBS instance.
 
+## 1.4.0-alpha.2 — Iris/Oculus audience-route fallback
+
+### User-facing changes
+
+- Added a compatibility fallback for Iris and Oculus shader loaders.
+- When either loader is present, the mod keeps the normal player renderer active and disables only the independently capturable audience FBO/window route instead of risking a conflicting OpenGL pipeline.
+
+### Configuration and compatibility
+
+- No new configuration key or installation step is required.
+- The fallback is detected automatically from the loaded Forge mod list for `iris` and `oculus`.
+- `README.md` remains unchanged because this is a development prerelease.
+
+### Technical behavior and verification
+
+- Detection is cached after the first client render and reported in the log; the optional route diagnostic panel identifies the fallback loader.
+- Build and source-level compatibility checks are recorded in `TESTLOG.md`; a live Iris/Oculus runtime session remains unverified in this environment.
+
 ## 1.3.0 — stable release
 
 ### User-facing changes

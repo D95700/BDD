@@ -1,5 +1,38 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.2 Iris/Oculus compatibility fallback source and build verification
+
+- Test date: 2026-09-22
+- Test type: Java compilation, resource processing, packaged-artifact verification, and source-level compatibility check
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17 toolchain
+- Mod ID: `bddmod`
+- Gradle environment: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'`; Java compilation uses `build\tmp\codex-direct-javac.init.gradle` to select the Java 17 toolchain compiler.
+- Commands: `.\gradlew.bat compileJava --no-daemon --stacktrace --init-script build\tmp\codex-direct-javac.init.gradle`; `.\gradlew.bat processResources --no-daemon --stacktrace --init-script build\tmp\codex-direct-javac.init.gradle`; `.\gradlew.bat build --no-daemon --stacktrace --init-script build\tmp\codex-direct-javac.init.gradle`; `python scripts\verify_build.py`; `git diff --check`
+- Result: PASS - the alpha.2 source compiles, resources expand, the installable artifact embeds the matching SemVer metadata, and the Iris/Oculus fallback source path is present for both supported mod IDs
+
+### Verified behaviors
+
+- `ShaderCompatibility` checks Forge mod IDs `iris` and `oculus`, caches the result, and logs whether the audience FBO route remains enabled or enters fallback.
+- `RenderRouteTestRenderer` releases the audience route whenever a detected shader loader makes the FBO path unsupported; the player-visible renderer remains active.
+- The optional route diagnostic reports `SUPPORTED` or `FALLBACK (iris, oculus)` without changing the default configuration.
+- The installable artifact is `build/libs/bddmod-1.4.0-alpha.2-all.jar`, SHA-256 `201C2723FB4492C165B6E439345BDE6E0AFF47DF120BD33F32F7A991100945FD`; the alpha.1 `-all.jar` is retained alongside it for the eventual section release.
+
+### Not covered
+
+- No live client session with Iris or Oculus was run, so shader-pack-specific visual output and a real fallback transition remain unverified.
+- No OBS recording or runtime screenshot was produced for alpha.2.
+
+### Evidence
+
+- Source: `src/main/java/com/example/bddmod/client/ShaderCompatibility.java` and `src/main/java/com/example/bddmod/client/RenderRouteTestRenderer.java`.
+- Artifact verifier output: `build/tmp/alpha2-verify-build.txt`.
+
+### Warnings and observations
+
+- A plain wrapper invocation hit this machine's known Gradle loopback-selector error; the environment prefix and Java compiler init script above completed the same checks successfully.
+
 ## 1.3.0-alpha.5 repair runtime and audience-frame verification
 
 - Test date: 2026-09-22
