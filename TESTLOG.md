@@ -881,3 +881,32 @@
 - Gradle output: `BUILD SUCCESSFUL in 18s`
 - Artifact: `build/libs/bddmod-1.3.0-alpha.6-all.jar`
 - Runtime test evidence: not generated for this change.
+
+## 1.3.0 stable release verification result
+
+- Test date: 2026-09-22
+- Test type: Stable release build and packaged-resource verification
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java runtime: 11 (`JAVA_HOME=C:\Program Files\Java\jdk-11`); Java 17 remains the configured bytecode target
+- Mod: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat build --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS — `BUILD SUCCESSFUL` (19s)
+
+### Verified behaviors
+
+- The stable version compiled, processed resources, reobfuscated, packaged, and completed the full Gradle `build` task successfully.
+- The distributable artifact was produced at `build/libs/bddmod-1.3.0-all.jar`.
+- The packaged mod metadata reports version `1.3.0`; the packaged license remains `WTFPL`.
+- The packaged sound registry contains only `recording_heartbeat`; no breathing sound entry or asset is present.
+- SHA-256: `AAF56AEE9DA2AAA9B60B5397C760552B6ED1B684A2DE4319C0A59F53B4CCEE57`.
+
+### Not covered
+
+- No development-client runtime session was run for the stable promotion, so live heartbeat playback, visual pulse synchronization, and OBS behavior were not independently re-tested in this build.
+
+### Evidence
+
+- Gradle output: `BUILD SUCCESSFUL in 19s`
+- Artifact: `build/libs/bddmod-1.3.0-all.jar`
+- Runtime test evidence: not generated for the stable promotion.

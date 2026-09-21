@@ -19,6 +19,25 @@ This file records user-facing changes for the README, visual-design, and release
 - Added SemVer rules for `MAJOR.MINOR.PATCH`, hyphenated prereleases, optional plus-prefixed build metadata, numeric identifiers without leading zeroes, and version precedence.
 - Kept all existing `1.3.0.dev*` and earlier versions as immutable historical artifacts; no existing tag, release, or JAR is renamed.
 
+## 1.3.0 — stable release
+
+### User-facing changes
+
+- Promoted the recording experience to the `1.3.0` stable release after the alpha verification sequence.
+- Recording mode keeps synchronized heartbeat audio, visual pulse and dark-red vein effects, audience-window rendering, and randomized audience head distortion effects.
+- Breathing audio remains removed; the recording audio volume setting controls heartbeat audio only.
+
+### Configuration and compatibility
+
+- No new configuration key or installation step is required for this release.
+- The release is built for Minecraft `1.20.1` on Forge `47.4.10` with Java 17 bytecode compatibility.
+- `README.md` is updated only after this stable commit and GitHub Release are published, following the repository release workflow.
+
+### Technical behavior and verification
+
+- Stable version metadata, generated resources, changelog heading, test record, tag, release title, and installable JAR name are synchronized to `1.3.0`.
+- The full Gradle build and packaged metadata verification are recorded in `TESTLOG.md`.
+
 ## 1.3.0-alpha.6 — remove breathing audio
 
 ### User-facing changes
