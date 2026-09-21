@@ -2,6 +2,14 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## Unreleased — post-release README synchronization policy
+
+### Project workflow changes
+
+- README updates now occur only after a stable-version commit has been pushed and its GitHub Release and installable assets have been published and verified.
+- Development builds, prereleases, and roadmap micro-steps no longer change the README; it continues to describe the latest published stable release.
+- Each stable release now receives a separate post-release README documentation commit so its badge, download filename, guidance, summary, configuration notes, and roadmap status can be checked against the release that actually exists on GitHub.
+
 ## Unreleased — SemVer 2.0.0 version naming
 
 ### Project workflow changes

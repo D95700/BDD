@@ -21,7 +21,7 @@
 
 ## Roadmap release policy
 
-- Completing a roadmap section is a formal release boundary: remove any development or prerelease suffix, advance the project version to the next appropriate stable version, and synchronize all user-facing version references.
+- Completing a roadmap section is a formal release boundary: remove any development or prerelease suffix, advance the project version to the next appropriate stable version, and synchronize all user-facing version references except `README.md`, which follows the post-release workflow below.
 - For every completed roadmap section, run the full `build`, commit the completed section, push it to GitHub, and publish a GitHub Release with the installable `-all.jar` artifact.
 - Preserve every installable `-all.jar` produced during that roadmap section until the stable release is published. Upload the retained development or prerelease `-all.jar` files and the final stable `-all.jar` together as assets of the same GitHub Release so the complete section history remains downloadable.
 - Do not upload thin JARs without bundled runtime dependencies. List every uploaded version and SHA-256 digest in the release notes, and verify each retained artifact reports the matching embedded mod version before publishing.
@@ -30,9 +30,11 @@
 
 ## README release synchronization
 
-- After every stable-version commit, review and update `README.md` before the release workflow is considered complete. Prefer including the synchronized README in the stable release commit; if the release commit has already been created without it, create and push an immediate follow-up documentation commit.
-- At minimum, synchronize the version badge, introductory current-version text, installable JAR filename, installation/download guidance, release summary, relevant configuration documentation, and completed roadmap status.
-- After publishing the GitHub Release, verify that the README's stable version and asset names match the published tag and downloadable `-all.jar`. Commit and push any required correction immediately rather than deferring it to the next development cycle.
+- `README.md` MUST describe the latest published stable release. Do not update it for development builds, prereleases, roadmap micro-steps, or an unpushed stable-version commit.
+- The stable code/version commit MUST be built, committed, and pushed first, without modifying `README.md`. Publish and verify the corresponding GitHub Release and its downloadable `-all.jar` assets before editing the README.
+- Only after the stable commit and GitHub Release have been pushed may `README.md` be updated. Make the README update as a separate documentation commit, then push that commit immediately; the release workflow is incomplete until this follow-up push succeeds.
+- At minimum, synchronize the version badge, introductory current-version text, installable JAR filename, installation/download guidance, release summary, relevant configuration documentation, and completed roadmap status against the release that was actually published.
+- After the README follow-up push, verify that its stable version, tag, and asset names exactly match the published GitHub Release. Commit and push any required correction immediately rather than deferring it to the next development cycle.
 
 ## Version naming (SemVer 2.0.0)
 
@@ -48,12 +50,12 @@
 - Build metadata MAY follow a release or prerelease after `+`, using dot-separated ASCII identifiers, for example `1.4.0+build.1` or `1.4.0-rc.1+sha.abc123`. Build metadata MUST NOT change version precedence and MUST NOT replace a required prerelease identifier.
 - Version precedence compares `MAJOR`, `MINOR`, and `PATCH` numerically; a prerelease has lower precedence than its corresponding stable release. When prerelease cores match, compare identifiers left to right: numeric identifiers numerically, non-numeric identifiers by ASCII order, numeric identifiers lower than non-numeric identifiers, and a longer equal prefix has higher precedence. Ignore build metadata for precedence.
 - Published versions are immutable. After a tag or release is published, never replace its code, resources, metadata, or artifact; issue a new version for every subsequent published change.
-- Keep `gradle.properties`, generated mod metadata, README badges and download names, changelog headings, Git tags, GitHub Release titles, and JAR filenames synchronized to the same SemVer value (excluding an optional `v` prefix used only in Git tag names).
+- Keep `gradle.properties`, generated mod metadata, changelog headings, test records, Git tags, GitHub Release titles, and JAR filenames synchronized to the same SemVer value (excluding an optional `v` prefix used only in Git tag names). Synchronize README badges and download names only through the post-release workflow above.
 
 ## Roadmap step versioning under SemVer
 
 - Give every independently verifiable roadmap micro-step its own monotonically increasing SemVer prerelease, even when multiple micro-steps belong to one larger roadmap section. For example, use `1.4.0-alpha.1`, then `1.4.0-alpha.2`.
-- Bump `mod_version` to the next valid SemVer prerelease before implementing the next micro-step and synchronize that value in the README, changelog heading, generated metadata, test records, and installable `-all.jar` filename.
+- Bump `mod_version` to the next valid SemVer prerelease before implementing the next micro-step and synchronize that value in the changelog heading, generated metadata, test records, and installable `-all.jar` filename. Leave `README.md` unchanged until a stable release has been pushed and published.
 - When the roadmap section is complete, promote the accepted prerelease line to the next stable core version without a prerelease suffix, such as `1.4.0`; preserve each prerelease `-all.jar` so the completed section can publish the full sequence together.
 - Do not combine separately verifiable micro-steps under one prerelease, and do not relabel an existing artifact as another version.
 
