@@ -1,5 +1,37 @@
 # BDD Mod Test Log
 
+## 1.3.0-alpha.2 hidden audience message runtime
+
+- Test date: 2026-09-21
+- Test type: Forge development-client runtime test - audience-only glyph texture, timed reveal, and disconnect cleanup
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args='--quickPlaySingleplayer "新的世界"' --init-script build\tmp\codex-direct-javac.init.gradle` with a temporary local WebSocket 5 endpoint at `127.0.0.1:4455`
+- Result: PASS - compilation, packaging, SemVer metadata loading, two-texture audience shader execution, and disconnect cleanup
+
+### Verified behaviors
+
+- The client loaded mod version `1.3.0-alpha.2`, entered the single-player world, and rendered on AMD Radeon RX 6750 GRE OpenGL 4.6 / LWJGL 3.3.1.
+- The local OBS protocol endpoint reported `RECORDING`; the route created the `854x480` audience target and opened `BDD Audience Output`, proving the shader linked and presented with both the frame and runtime glyph texture samplers.
+- Stopping the temporary endpoint logged `Audience output window resources released`, then released the audience target and stopped synchronized audio and pulse effects without crashing the client.
+- The temporary diagnostic setting was restored to `renderRouteTestEnabled = false` after the run.
+
+### Not verified
+
+- Direct screenshot confirmation of the timed `WE SEE YOU` reveal was unavailable because the local Windows capture interface returned no bindable application windows. Its subjective size, placement, and opacity remain for manual review.
+- The Gradle development task was interrupted after the world had auto-saved and the audience resources had released; a normal menu-driven client shutdown was not covered.
+
+### Warnings and observations
+
+- The run emitted the pre-existing vanilla warning that `rendertype_entity_translucent_emissive` could not find `Sampler2`; no new warning named the audience shader, hidden-text sampler, or output route.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log` and `run/logs/debug.log`, including audience creation at `13:13:57` and resource release at `13:14:40`.
+- Installable artifact: `build/libs/bddmod-1.3.0-alpha.2-all.jar`, SHA-256 `588069DAF55A1BE7FC439A94E92FD44F6E5F29AB6DE393605C76CE3B17EAE353`.
+
 ## 1.3.0-alpha.1 audience-only localized distortion runtime
 
 - Test date: 2026-09-21

@@ -3,6 +3,7 @@ package com.example.bddmod.client;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
@@ -12,6 +13,8 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
 
 /**
  * Presents the audience texture in a small, separately capturable GLFW window.
@@ -23,6 +26,9 @@ import org.slf4j.LoggerFactory;
 public final class AudienceWindowManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("bddmod-audience-window");
     private static final String WINDOW_TITLE = "BDD Audience Output";
+    private static final String HIDDEN_MESSAGE = "WE SEE YOU";
+    private static final int GLYPH_WIDTH = 5;
+    private static final int GLYPH_HEIGHT = 7;
     private static final String VERTEX_SHADER = "#version 150\n"
             + "in vec2 Position;\n"
             + "in vec2 UV;\n"
@@ -30,6 +36,7 @@ public final class AudienceWindowManager {
             + "void main() { gl_Position = vec4(Position, 0.0, 1.0); TexCoord = UV; }\n";
     private static final String FRAGMENT_SHADER = "#version 150\n"
             + "uniform sampler2D Texture;\n"
+            + "uniform sampler2D HiddenText;\n"
             + "uniform float Pulse;\n"
             + "uniform float Time;\n"
             + "in vec2 TexCoord;\n"
@@ -58,6 +65,16 @@ public final class AudienceWindowManager {
             + "    float amount = (0.004 + 0.018 * Pulse) * (0.15 + 0.85 * edge);\n"
             + "    vec3 color = source.rgb + vec3(grain * amount);\n"
             + "    color += vec3(0.018, 0.0, 0.0) * edge * Pulse;\n"
+            + "    vec2 textUv = (TexCoord - vec2(0.62, 0.10)) / vec2(0.30, 0.07);\n"
+            + "    float hiddenText = 0.0;\n"
+            + "    if (all(greaterThanEqual(textUv, vec2(0.0)))\n"
+            + "            && all(lessThanEqual(textUv, vec2(1.0)))) {\n"
+            + "        hiddenText = texture(HiddenText, textUv).r;\n"
+            + "    }\n"
+            + "    float reveal = smoothstep(0.68, 0.74, Time)\n"
+            + "            * (1.0 - smoothstep(0.88, 0.94, Time));\n"
+            + "    float textAlpha = hiddenText * reveal * (0.22 + 0.28 * Pulse);\n"
+            + "    color = mix(color, vec3(0.42, 0.035, 0.035), textAlpha);\n"
             + "    FragColor = vec4(color, source.a);\n"
             + "}\n";
 
@@ -69,7 +86,9 @@ public final class AudienceWindowManager {
     private static int vao;
     private static int vertexBuffer;
     private static int indexBuffer;
+    private static int hiddenTextTexture;
     private static int textureUniform;
+    private static int hiddenTextUniform;
     private static int pulseUniform;
     private static int timeUniform;
     private static boolean failed;
@@ -181,6 +200,9 @@ public final class AudienceWindowManager {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
         GL20.glUseProgram(program);
         GL30.glBindVertexArray(vao);
+        GL13Compat.activeTexture1();
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, hiddenTextTexture);
+        GL20.glUniform1i(hiddenTextUniform, 1);
         GL13Compat.activeTexture0();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
         GL20.glUniform1i(textureUniform, 0);
@@ -189,6 +211,9 @@ public final class AudienceWindowManager {
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
         GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0L);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
+        GL13Compat.activeTexture1();
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+        GL13Compat.activeTexture0();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         GL30.glBindVertexArray(0);
         GL20.glUseProgram(0);
@@ -211,8 +236,10 @@ public final class AudienceWindowManager {
         GL20.glDeleteShader(vertexShader);
         GL20.glDeleteShader(fragmentShader);
         textureUniform = GL20.glGetUniformLocation(program, "Texture");
+        hiddenTextUniform = GL20.glGetUniformLocation(program, "HiddenText");
         pulseUniform = GL20.glGetUniformLocation(program, "Pulse");
         timeUniform = GL20.glGetUniformLocation(program, "Time");
+        hiddenTextTexture = createHiddenTextTexture();
 
         float[] vertices = {
                 -1.0F, -1.0F, 0.0F, 0.0F,
@@ -236,6 +263,50 @@ public final class AudienceWindowManager {
         GL30.glBindVertexArray(0);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+
+    private static int createHiddenTextTexture() {
+        int textureWidth = HIDDEN_MESSAGE.length() * (GLYPH_WIDTH + 1) - 1;
+        ByteBuffer pixels = BufferUtils.createByteBuffer(textureWidth * GLYPH_HEIGHT);
+        for (int y = 0; y < GLYPH_HEIGHT; y++) {
+            int glyphRow = GLYPH_HEIGHT - 1 - y;
+            for (int characterIndex = 0; characterIndex < HIDDEN_MESSAGE.length(); characterIndex++) {
+                int[] rows = glyphRows(HIDDEN_MESSAGE.charAt(characterIndex));
+                for (int x = 0; x < GLYPH_WIDTH; x++) {
+                    int bit = 1 << (GLYPH_WIDTH - 1 - x);
+                    pixels.put((byte) ((rows[glyphRow] & bit) != 0 ? 0xFF : 0x00));
+                }
+                if (characterIndex < HIDDEN_MESSAGE.length() - 1) {
+                    pixels.put((byte) 0x00);
+                }
+            }
+        }
+        pixels.flip();
+
+        int texture = GL11.glGenTextures();
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
+        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE);
+        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL30.GL_R8, textureWidth, GLYPH_HEIGHT, 0,
+                GL11.GL_RED, GL11.GL_UNSIGNED_BYTE, pixels);
+        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 4);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+        return texture;
+    }
+
+    private static int[] glyphRows(char character) {
+        return switch (character) {
+            case 'W' -> new int[] {17, 17, 17, 21, 21, 27, 17};
+            case 'E' -> new int[] {31, 16, 16, 30, 16, 16, 31};
+            case 'S' -> new int[] {15, 16, 16, 14, 1, 1, 30};
+            case 'Y' -> new int[] {17, 17, 10, 4, 4, 4, 4};
+            case 'O' -> new int[] {14, 17, 17, 17, 17, 17, 14};
+            case 'U' -> new int[] {17, 17, 17, 17, 17, 17, 14};
+            default -> new int[] {0, 0, 0, 0, 0, 0, 0};
+        };
     }
 
     private static int compileShader(int type, String source) {
@@ -285,6 +356,9 @@ public final class AudienceWindowManager {
         if (indexBuffer != 0) {
             GL15.glDeleteBuffers(indexBuffer);
         }
+        if (hiddenTextTexture != 0) {
+            GL11.glDeleteTextures(hiddenTextTexture);
+        }
         if (vao != 0) {
             GL30.glDeleteVertexArrays(vao);
         }
@@ -293,13 +367,16 @@ public final class AudienceWindowManager {
         program = 0;
         vertexBuffer = 0;
         indexBuffer = 0;
+        hiddenTextTexture = 0;
         vao = 0;
         textureUniform = -1;
+        hiddenTextUniform = -1;
         pulseUniform = -1;
         timeUniform = -1;
         windowWidth = 0;
         windowHeight = 0;
         restoreMinecraftContextIfPossible(mainHandle);
+        LOGGER.info("Audience output window resources released");
     }
 
     private static void restoreMinecraftContextIfPossible(long mainHandle) {
@@ -316,6 +393,10 @@ public final class AudienceWindowManager {
 
         private static void activeTexture0() {
             org.lwjgl.opengl.GL13.glActiveTexture(org.lwjgl.opengl.GL13.GL_TEXTURE0);
+        }
+
+        private static void activeTexture1() {
+            org.lwjgl.opengl.GL13.glActiveTexture(org.lwjgl.opengl.GL13.GL_TEXTURE1);
         }
     }
 }

@@ -19,6 +19,20 @@ This file records user-facing changes for the README, visual-design, and release
 - Added SemVer rules for `MAJOR.MINOR.PATCH`, hyphenated prereleases, optional plus-prefixed build metadata, numeric identifiers without leading zeroes, and version precedence.
 - Kept all existing `1.3.0.dev*` and earlier versions as immutable historical artifacts; no existing tag, release, or JAR is renamed.
 
+## 1.3.0-alpha.2 — hidden audience message
+
+### User-facing changes
+
+- Added the audience-only message `WE SEE YOU`, which briefly fades into the lower-right area of `BDD Audience Output` during recording.
+- The message follows the synchronized recording pulse and remains absent from the player's Minecraft window.
+- Kept the message small, dark red, and time-limited so it reads as a discoverable audience detail rather than a persistent obstruction.
+
+### Technical behavior and verification
+
+- Generates a compact 5x7 glyph texture at runtime and samples it only in the separate audience-window fragment shader; no external image or font dependency is added.
+- Version advanced to the SemVer prerelease `1.3.0-alpha.2`; build and runtime verification are recorded in `TESTLOG.md`.
+- `README.md` remains unchanged under the post-release synchronization policy.
+
 ## 1.3.0-alpha.1 — audience-only localized distortion
 
 ### User-facing changes
