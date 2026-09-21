@@ -2,7 +2,7 @@
 
 # BDD Local Client
 
-### 为 Minecraft 设计的本地心理恐怖视觉体验模组
+### Minecraft 本地录制与观众窗口辅助模组
 
 ![Minecraft 1.20.1](https://img.shields.io/badge/Minecraft-1.20.1-3C8527?style=flat-square&logo=minecraft&logoColor=white)
 ![Forge 47.4.10](https://img.shields.io/badge/Forge-47.4.10-orange?style=flat-square)
@@ -10,23 +10,17 @@
 ![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Client Only](https://img.shields.io/badge/side-client--only-6C63FF?style=flat-square)
 
-**BDD Local Client 1.3.0** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组正式版。
-它通过简洁的 HUD、OBS 录制状态反馈和本地会话统计，营造“玩家所见”与“观众所见”之间逐渐产生偏差的心理恐怖氛围。
+**BDD Local Client 1.3.0** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组。
+它提供 OBS 状态监控、录制辅助 HUD、观众窗口渲染和本地会话统计。
 
 </div>
 
-> [!WARNING]
-> 本模组包含心理恐怖主题、身体形象焦虑、被注视感和录制状态反馈等内容，不适合对相关主题敏感的玩家。
-> 请在知情、同意的前提下用于直播或录制，并提前告知观众。
-
 ## ✦ 项目简介
 
-BDD Local Client 的设计重点不是传统的怪物或跳脸惊吓，而是把“检查、注视、遮掩和自我怀疑”转化为轻量的客户端反馈：
+这是一个 client-only 模组，不改变服务端逻辑，也不添加实体、方块或世界生成内容。模组仅连接本机 OBS WebSocket，并将录制状态、观众输出和会话数据保留在客户端。
 
-- **平时保持克制**：不改变服务端逻辑，不添加实体、方块或世界生成内容。
-- **录制时产生差异感**：模组连接本机 OBS WebSocket，并在 HUD 中显示录制/待机状态。
-- **将异常限制在本地**：只读取明确允许的少量系统属性，不读取文件、剪贴板、网络身份或设备标识。
-- **优先稳定性**：OBS 未启动、端口不可访问或虚拟音频设备不存在时，功能会静默回退，不阻塞游戏。
+- OBS 不可访问时自动回退到待机状态，不阻塞游戏。
+- 本地信息读取范围受限，不读取文件、剪贴板、网络身份或设备标识。
 
 ## ✅ 当前功能
 
@@ -38,12 +32,12 @@ BDD Local Client 的设计重点不是传统的怪物或跳脸惊吓，而是把
 | OBS 密码认证与状态恢复 | ✅ | 支持密码认证，并在连接时读取 OBS 当前录制状态 |
 | OBS 设置引导 | ✅ | 首次打开游戏时自动引导，也可通过主菜单底部的录制图标重复打开；密码框掩码显示 |
 | 断线安全回退 | ✅ | OBS 关闭、认证失败或连接断开时回到待机状态并后台重连 |
-| 录制视觉反馈 | ✅ | OBS 录制时显示较短、较细并随共享节奏呼吸的暗红脉络 |
+| 录制视觉反馈 | ✅ | OBS 录制时启用同步的客户端视觉反馈 |
 | 会话统计 | ✅ | 统计录制 tick、可操作/无遮罩 tick 和检查次数 |
-| 同步游戏内音频 | ✅ | 录制时在游戏内播放轻微心跳，并与脉络使用同一相位时钟 |
+| 同步游戏内音频 | ✅ | 录制时播放与视觉反馈同步的游戏内音频 |
 | 本地信息快照 | 🧩 | 仅提供用户名、操作系统和当前时间的内存快照 |
 | FBO 与观众窗口诊断 | 🧪 | 测试模式开启时创建 `BDD Audience Output` 独立窗口，并通过共享 OpenGL 上下文显示观众 RenderTarget；面板报告窗口状态，适合 OBS 窗口源捕获 |
-| 观众专用模型扭曲 / 隐藏文字 | 🚧 | 观众窗口已经加入轻微动态噪点和暗红边缘色偏；模型扭曲、隐藏文字和原生交换缓冲钩子仍在规划中 |
+| 观众专用效果 | ✅ | 观众窗口使用独立渲染效果，玩家窗口保持独立 |
 
 ### HUD 示例
 
@@ -52,7 +46,7 @@ BDD // OBS RECORDING
 checks 0  covered 00:42
 ```
 
-录制状态下，屏幕四角与四边会出现较短、较细的暗红分叉脉络；脉络亮度和游戏内心跳声由同一个 3 秒周期驱动。停止录制、OBS 不可访问或连接断开时，视觉和音频会一同停止。
+录制状态由 OBS 事件驱动，视觉反馈和游戏内音频使用共享相位时钟；停止录制、OBS 不可访问或连接断开时，相关效果会停止。
 
 ## 🧱 技术架构
 
@@ -64,8 +58,8 @@ BDDMod
 │  ├─ BDDSessionData            当前游戏会话统计
 │  ├─ AudienceRenderTargetManager 观众专用离屏渲染目标生命周期
 │  ├─ AudienceWindowManager         共享上下文观众窗口与纹理呈现
-│  ├─ RecordingPulseController  视觉与心跳声的共享相位时钟
-│  ├─ RecordingAudioPlayer      Minecraft 游戏内心跳音效
+│  ├─ RecordingPulseController  录制反馈共享相位时钟
+│  ├─ RecordingAudioPlayer      Minecraft 游戏内录制音效
 │  ├─ LocalInfoProvider         最小化本地信息快照
 │  └─ event/ClientEventHandler  客户端 Tick 与 HUD 渲染
 └─ resources/
@@ -169,18 +163,16 @@ BDDMod
 
 | 配置项 | 默认值 | 作用 |
 | --- | ---: | --- |
-| `terrorModeEnabled` | `true` | 启用/停用 BDD HUD 与录制边缘反馈 |
+| `terrorModeEnabled` | `true` | 启用/停用 BDD HUD 与录制反馈 |
 | `renderRouteTestEnabled` | `false` | 启用/停用 FBO 与独立观众窗口诊断；开启后 OBS 可捕获 `BDD Audience Output` 窗口，仅调试时建议开启 |
-| `recordingAudioVolume` | `0.30` | 游戏内心跳音量，范围 `0.0`–`1.0`；同时受主音量和环境音效音量控制 |
+| `recordingAudioVolume` | `0.30` | 游戏内录制音效音量，范围 `0.0`–`1.0`；同时受主音量和环境音效音量控制 |
 | `obsWebSocketPassword` | `""` | OBS WebSocket 5 密码；留空表示 OBS 未启用密码 |
 | `obsSetupCompleted` | `false` | 是否已经完成首次 OBS 设置引导；引导中选择“稍后设置”也会结束本次首次提示 |
 | `obsPort` | `4455` | 连接 `127.0.0.1` 上的 OBS WebSocket 5 端口 |
 
 设置引导保存后会立即请求后台重连 OBS；手动修改配置文件后请完全重启客户端，以确保所有配置值重新加载。
 
-## 📹 OBS 与游戏内音效
-
-### OBS
+## 📹 OBS 接入
 
 默认端口为 `4455`。模组使用内置的阻塞式 WebSocket 客户端连接 OBS WebSocket 5，避免依赖主机的 Java NIO Selector：
 
@@ -192,11 +184,7 @@ BDDMod
 
 监控始终限制在 `127.0.0.1`，不会向外部服务发送数据。
 
-### 游戏内音效
-
-开始录制后，Minecraft 声音引擎会在“环境音效”通道播放轻微的低频心跳。玩家可以直接听见心跳，并能通过游戏的主音量、环境音效音量以及 `recordingAudioVolume` 配置控制响度。
-
-心跳触发和脉络亮度共享同一个 3 秒相位周期；停止录制或 OBS 断开时会一同停止。声音不依赖 VB-CABLE 或 Voicemeeter。OBS 是否录入声音取决于当前场景是否捕获 Minecraft 所使用的桌面或应用音频。
+游戏内录制音效使用 Minecraft 的“环境音效”通道，可通过主音量、环境音效音量和 `recordingAudioVolume` 控制。OBS 是否录入该音频取决于场景是否捕获 Minecraft 所使用的桌面或应用音频。
 
 ## 🧪 验证清单
 
@@ -206,11 +194,11 @@ BDDMod
 2. 在 OBS 中启用 WebSocket 5，并确认端口和密码配置正确；若启用了 OBS 密码，必须将相同密码写入 `obsWebSocketPassword`。
 3. 开始 OBS 录制，确认状态切换为 `OBS RECORDING`；停止录制后确认恢复为 `OBS STANDBY`。
 4. 在 OBS 已经录制时启动 Minecraft，确认连接后 HUD 能恢复录制状态。
-5. 观察录制状态下较短、较细的暗红分叉脉络，并直接在游戏中确认心跳和脉络亮度同频变化。
+5. 确认录制状态下客户端反馈和游戏内音频按共享相位时钟同步变化。
 6. 关闭 OBS 或断开 WebSocket，确认 HUD 安全回退到待机状态。
 7. 打开菜单或暂停界面，确认会话统计只在玩家处于游戏世界时更新。
-8. 将 `terrorModeEnabled=false` 写入配置并重启，确认 HUD 与边缘反馈关闭。
-9. 将 `recordingAudioVolume=0` 后重启，确认录制脉络仍正常显示而心跳静音。
+8. 将 `terrorModeEnabled=false` 写入配置并重启，确认 HUD 与录制反馈关闭。
+9. 将 `recordingAudioVolume=0` 后重启，确认录制音效静音且其他功能正常。
 10. 临时设置 `renderRouteTestEnabled=true`，进入录制后确认出现绿色 `PLAYER VIEW` / 红色 `OBS TEST BUFFER` 面板，并看到标题为 `BDD Audience Output` 的独立窗口；在 OBS 中添加窗口源捕获该窗口。当前窗口镜像玩家已渲染画面，测试后建议关闭。
 
 ## 🗺️ 开发路线
@@ -218,10 +206,10 @@ BDDMod
 - [x] 增强 OBS WebSocket 断线重连、错误提示和连接状态诊断。
 - [x] 接入 OBS 专用 FBO / RenderTarget 渲染链路。
 - [x] 建立独立 TextureTarget 的创建、尺寸同步、写入和安全回退诊断路径。
-- [x] 增加仅对观众可见的局部模型变形和噪点。
-- [ ] 增加仅对观众可见的隐藏文字与更多检查触发器。
-- [ ] 加入检查、回避、遮掩等行为的可验证触发器。
-- [x] 完成游戏内心跳素材管理、事件驱动播放及共享节奏同步。
+- [x] 增加仅对观众可见的独立渲染效果。
+- [ ] 扩展观众专用渲染能力与可验证触发器。
+- [ ] 增加更多客户端行为触发器。
+- [x] 完成游戏内录制音效管理、事件驱动播放及共享节奏同步。
 - [ ] 增加兼容 Iris/Oculus 等渲染扩展的回退策略。
 - [ ] 补充自动化测试、运行截图和发行版工作流。
 
@@ -230,21 +218,15 @@ BDDMod
 ## ✅ 1.3.0 正式版摘要
 
 - 完成独立观众 RenderTarget 与 `BDD Audience Output` 窗口，支持 OBS 窗口源捕获，并修复观众画面上下颠倒问题。
-- 观众窗口加入动态噪点、暗红边缘色偏和随机头部马赛克、扭曲、变形效果，玩家主窗口不受影响。
-- 录制时保留与脉络同频的游戏内心跳；呼吸声已移除。
+- 观众窗口使用独立渲染效果，玩家主窗口不受影响。
+- 录制时保留与视觉反馈同频的游戏内音频。
 - GitHub Release `v1.3.0` 同时保留 `1.3.0.dev1`–`dev3`、`1.3.0-alpha.1`–`alpha.6` 和稳定版 `bddmod-1.3.0-all.jar`，安装时请选择稳定版 `-all.jar`。
 
 ## 🆕 1.2.1 正式版历史摘要
 
-- OBS WebSocket 改用随模组打包的阻塞式传输，避开部分 Windows 主机上的 Java NIO Selector 初始化故障。
-- 支持 OBS 录制开始/停止事件、密码认证、连接时的当前状态恢复和断线重连。
-- 缩短并减淡暗红色分叉脉络，降低对正常游戏视野的遮挡。
-- 新增玩家可直接听见的游戏内呼吸与心跳音效，并与脉络使用同一个节奏时钟（后续 `1.3.0` 已移除呼吸声）。
-- 音效归入 Minecraft 的环境音效通道，不再依赖 VB-CABLE、Voicemeeter 或额外的 OBS 音频输入源。
-- OBS 关闭、认证失败或断线时自动回到 `OBS STANDBY`，并在后台重连。
-- `CONNECTED` 只在 OBS 完成身份确认后显示，避免认证失败时短暂误报。
-- `nv-websocket-client` 已包含在发行 JAR 中，用户不需要额外安装依赖。
-- 历史正式版：`build/libs/bddmod-1.2.1-all.jar`。对应开发构建仍作为历史记录保留。
+- 完成 OBS WebSocket 认证、状态恢复、事件同步与断线重连。
+- 运行时 WebSocket 依赖已包含在发行 JAR 中，无需额外安装。
+- 历史正式版：`build/libs/bddmod-1.2.1-all.jar`。
 
 ## 📁 许可证与致谢
 
@@ -262,4 +244,4 @@ BDDMod
 - 是否启用了 OBS、Iris/Oculus，以及主音量与环境音效音量；
 - 可稳定复现问题的最小步骤。
 
-涉及心理恐怖内容的改进建议，请同时说明预期的玩家体验和内容警告需求。
+如反馈涉及视觉或音频效果，请同时说明复现步骤、日志和配置。
