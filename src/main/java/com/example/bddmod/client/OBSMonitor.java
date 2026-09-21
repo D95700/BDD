@@ -1,6 +1,8 @@
 package com.example.bddmod.client;
 
 import com.example.bddmod.Config;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.neovisionaries.ws.client.WebSocket;
@@ -13,13 +15,18 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,13 +45,21 @@ public final class OBSMonitor {
     private static final int OUTPUTS_SUBSCRIPTION = 1 << 6;
     private static final long RECONNECT_SECONDS = 5L;
     private static final long AUTH_FAILURE_RETRY_SECONDS = 30L;
+    private static final String GAME_CAPTURE_KIND = "game_capture";
+    private static final String WINDOW_CAPTURE_KIND = "window_capture";
 
     private static final AtomicBoolean RECORDING = new AtomicBoolean(false);
     private static final AtomicBoolean STARTED = new AtomicBoolean(false);
     private static final AtomicBoolean CONNECTING = new AtomicBoolean(false);
     private static final AtomicBoolean CONNECTED = new AtomicBoolean(false);
     private static final AtomicBoolean AUTH_FAILED = new AtomicBoolean(false);
+    private static final AtomicBoolean AUDIENCE_ROUTE_IN_FLIGHT = new AtomicBoolean(false);
+    private static final AtomicBoolean AUDIENCE_ROUTE_APPLIED = new AtomicBoolean(false);
+    private static final AtomicInteger PENDING_CAPTURE_SETTINGS = new AtomicInteger();
     private static final AtomicLong CONNECTION_GENERATION = new AtomicLong();
+    private static final Map<String, String> CAPTURE_SETTINGS_REQUESTS = new ConcurrentHashMap<>();
+    private static final Map<String, String> CAPTURE_ROUTE_REQUESTS = new ConcurrentHashMap<>();
+    private static final Set<String> MATCHING_CAPTURE_INPUTS = ConcurrentHashMap.newKeySet();
     private static ScheduledExecutorService executor;
     private static volatile WebSocket pendingSocket;
     private static volatile WebSocket socket;
@@ -70,6 +85,10 @@ public final class OBSMonitor {
         return RECORDING.get();
     }
 
+    public static boolean isConnected() {
+        return CONNECTED.get();
+    }
+
     public static String getConnectionStatus() {
         if (CONNECTED.get()) {
             return "CONNECTED";
@@ -81,6 +100,15 @@ public final class OBSMonitor {
             return "CONNECTING";
         }
         return "DISCONNECTED";
+    }
+
+    public static void requestAudienceCaptureRoute() {
+        ScheduledExecutorService currentExecutor = executor;
+        if (currentExecutor == null || !Config.TERROR_MODE_ENABLED.get()
+                || !Config.AUTO_ROUTE_AUDIENCE_CAPTURE.get()) {
+            return;
+        }
+        currentExecutor.execute(() -> beginAudienceCaptureRoute(socket));
     }
 
     /**
@@ -146,6 +174,16 @@ public final class OBSMonitor {
         RECORDING.set(false);
         CONNECTED.set(false);
         socket = null;
+        resetAudienceRouting();
+    }
+
+    private static void resetAudienceRouting() {
+        AUDIENCE_ROUTE_IN_FLIGHT.set(false);
+        AUDIENCE_ROUTE_APPLIED.set(false);
+        PENDING_CAPTURE_SETTINGS.set(0);
+        CAPTURE_SETTINGS_REQUESTS.clear();
+        CAPTURE_ROUTE_REQUESTS.clear();
+        MATCHING_CAPTURE_INPUTS.clear();
     }
 
     private static void disconnectQuietly(WebSocket webSocket, String reason) {
@@ -171,7 +209,7 @@ public final class OBSMonitor {
                 case 0 -> sendIdentify(webSocket, data);
                 case 2 -> handleIdentified(webSocket);
                 case 5 -> handleEvent(data);
-                case 7 -> handleRequestResponse(data);
+                case 7 -> handleRequestResponse(data, webSocket);
                 default -> {
                     // OBS 的其他握手、请求或事件消息对录制状态没有影响。
                 }
@@ -209,12 +247,7 @@ public final class OBSMonitor {
     }
 
     private static void requestRecordStatus(WebSocket webSocket) {
-        JsonObject requestData = new JsonObject();
-        requestData.addProperty("requestType", "GetRecordStatus");
-        requestData.addProperty("requestId", UUID.randomUUID().toString());
-        requestData.add("requestData", new JsonObject());
-        // OBS WebSocket 5 Request messages use operation code 6.
-        send(webSocket, 6, requestData);
+        sendRequest(webSocket, "GetRecordStatus", new JsonObject());
     }
 
     private static void handleEvent(JsonObject eventData) {
@@ -229,26 +262,180 @@ public final class OBSMonitor {
         updateRecording(data);
     }
 
-    private static void handleRequestResponse(JsonObject responseData) {
-        if (!"GetRecordStatus".equals(responseData.has("requestType")
-                ? responseData.get("requestType").getAsString() : "")) {
-            return;
-        }
-
+    private static void handleRequestResponse(JsonObject responseData, WebSocket webSocket) {
+        String requestType = responseData.has("requestType")
+                ? responseData.get("requestType").getAsString() : "";
+        String requestId = responseData.has("requestId")
+                ? responseData.get("requestId").getAsString() : "";
         JsonObject status = responseData.has("requestStatus") && responseData.get("requestStatus").isJsonObject()
                 ? responseData.getAsJsonObject("requestStatus")
                 : new JsonObject();
         if (!status.has("result") || !status.get("result").getAsBoolean()) {
-            LOGGER.debug("OBS GetRecordStatus request was rejected: {}", status.has("code")
-                    ? status.get("code").getAsString() : "unknown");
-            clearState();
+            handleRejectedRequest(requestType, requestId, status, webSocket);
             return;
         }
 
         JsonObject data = responseData.has("responseData") && responseData.get("responseData").isJsonObject()
                 ? responseData.getAsJsonObject("responseData")
                 : new JsonObject();
-        updateRecording(data);
+        switch (requestType) {
+            case "GetRecordStatus" -> updateRecording(data);
+            case "GetCurrentProgramScene" -> handleCurrentProgramScene(data, webSocket);
+            case "GetSceneItemList" -> handleSceneItemList(data, webSocket);
+            case "GetInputSettings" -> handleCaptureInputSettings(requestId, data, webSocket);
+            case "SetInputSettings" -> handleCaptureRouteApplied(requestId);
+            default -> {
+                // Responses outside the monitor and audience-routing workflow are ignored.
+            }
+        }
+    }
+
+    private static void handleRejectedRequest(String requestType, String requestId, JsonObject status,
+                                              WebSocket webSocket) {
+        String code = status.has("code") ? status.get("code").getAsString() : "unknown";
+        if ("GetRecordStatus".equals(requestType)) {
+            LOGGER.debug("OBS GetRecordStatus request was rejected: {}", code);
+            clearState();
+            return;
+        }
+
+        if ("GetInputSettings".equals(requestType)) {
+            String inputName = CAPTURE_SETTINGS_REQUESTS.remove(requestId);
+            if (inputName != null) {
+                finishCaptureSettingsInspection(null);
+                completeCaptureSettingsInspection(webSocket);
+            }
+        } else {
+            CAPTURE_ROUTE_REQUESTS.remove(requestId);
+            AUDIENCE_ROUTE_IN_FLIGHT.set(false);
+        }
+        LOGGER.warn("OBS audience capture routing request {} was rejected with code {}", requestType, code);
+    }
+
+    private static void beginAudienceCaptureRoute(WebSocket webSocket) {
+        if (webSocket == null || !CONNECTED.get() || !Config.TERROR_MODE_ENABLED.get()
+                || !Config.AUTO_ROUTE_AUDIENCE_CAPTURE.get()
+                || AUDIENCE_ROUTE_APPLIED.get() || !AUDIENCE_ROUTE_IN_FLIGHT.compareAndSet(false, true)) {
+            return;
+        }
+        sendRequest(webSocket, "GetCurrentProgramScene", new JsonObject());
+    }
+
+    private static void handleCurrentProgramScene(JsonObject data, WebSocket webSocket) {
+        String sceneName = data.has("currentProgramSceneName")
+                ? data.get("currentProgramSceneName").getAsString() : "";
+        if (sceneName.isBlank()) {
+            LOGGER.warn("OBS audience capture routing skipped because the current program scene is unavailable");
+            AUDIENCE_ROUTE_IN_FLIGHT.set(false);
+            return;
+        }
+
+        JsonObject requestData = new JsonObject();
+        requestData.addProperty("sceneName", sceneName);
+        sendRequest(webSocket, "GetSceneItemList", requestData);
+    }
+
+    private static void handleSceneItemList(JsonObject data, WebSocket webSocket) {
+        JsonArray sceneItems = data.has("sceneItems") && data.get("sceneItems").isJsonArray()
+                ? data.getAsJsonArray("sceneItems") : new JsonArray();
+        Set<String> candidates = new HashSet<>();
+        for (JsonElement element : sceneItems) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject item = element.getAsJsonObject();
+            boolean enabled = !item.has("sceneItemEnabled") || item.get("sceneItemEnabled").getAsBoolean();
+            String inputKind = item.has("inputKind") ? item.get("inputKind").getAsString() : "";
+            String sourceName = item.has("sourceName") ? item.get("sourceName").getAsString() : "";
+            if (enabled && !sourceName.isBlank() && isCaptureInputKind(inputKind)) {
+                candidates.add(sourceName);
+            }
+        }
+
+        if (candidates.isEmpty()) {
+            LOGGER.warn("OBS audience capture routing found no enabled game/window capture source in the current scene");
+            AUDIENCE_ROUTE_IN_FLIGHT.set(false);
+            return;
+        }
+        if (candidates.size() == 1) {
+            setAudienceCaptureInput(webSocket, candidates.iterator().next());
+            return;
+        }
+
+        MATCHING_CAPTURE_INPUTS.clear();
+        PENDING_CAPTURE_SETTINGS.set(candidates.size());
+        for (String inputName : candidates) {
+            JsonObject requestData = new JsonObject();
+            requestData.addProperty("inputName", inputName);
+            String requestId = UUID.randomUUID().toString();
+            CAPTURE_SETTINGS_REQUESTS.put(requestId, inputName);
+            sendRequest(webSocket, "GetInputSettings", requestData, requestId);
+        }
+    }
+
+    private static void handleCaptureInputSettings(String requestId, JsonObject data, WebSocket webSocket) {
+        String inputName = CAPTURE_SETTINGS_REQUESTS.remove(requestId);
+        if (inputName == null) {
+            return;
+        }
+
+        JsonObject settings = data.has("inputSettings") && data.get("inputSettings").isJsonObject()
+                ? data.getAsJsonObject("inputSettings") : new JsonObject();
+        String selectedWindow = settings.has("window") ? settings.get("window").getAsString() : "";
+        String searchable = (inputName + " " + selectedWindow).toLowerCase(Locale.ROOT);
+        String match = searchable.contains("minecraft") || searchable.contains("java.exe")
+                || searchable.contains("javaw.exe") || searchable.contains("bdd audience output")
+                ? inputName : null;
+        finishCaptureSettingsInspection(match);
+        completeCaptureSettingsInspection(webSocket);
+    }
+
+    private static void finishCaptureSettingsInspection(String matchingInput) {
+        if (matchingInput != null) {
+            MATCHING_CAPTURE_INPUTS.add(matchingInput);
+        }
+        PENDING_CAPTURE_SETTINGS.updateAndGet(value -> Math.max(0, value - 1));
+    }
+
+    private static void completeCaptureSettingsInspection(WebSocket webSocket) {
+        if (PENDING_CAPTURE_SETTINGS.get() != 0) {
+            return;
+        }
+        if (MATCHING_CAPTURE_INPUTS.size() == 1) {
+            setAudienceCaptureInput(webSocket, MATCHING_CAPTURE_INPUTS.iterator().next());
+        } else {
+            LOGGER.warn("OBS audience capture routing left multiple capture sources unchanged because {} matched Minecraft",
+                    MATCHING_CAPTURE_INPUTS.size());
+            AUDIENCE_ROUTE_IN_FLIGHT.set(false);
+        }
+    }
+
+    private static boolean isCaptureInputKind(String inputKind) {
+        return GAME_CAPTURE_KIND.equals(inputKind)
+                || WINDOW_CAPTURE_KIND.equals(inputKind)
+                || inputKind.startsWith(WINDOW_CAPTURE_KIND + "_");
+    }
+
+    private static void setAudienceCaptureInput(WebSocket webSocket, String inputName) {
+        JsonObject inputSettings = new JsonObject();
+        inputSettings.addProperty("window", AudienceWindowManager.captureSelector());
+        JsonObject requestData = new JsonObject();
+        requestData.addProperty("inputName", inputName);
+        requestData.add("inputSettings", inputSettings);
+        requestData.addProperty("overlay", true);
+        String requestId = UUID.randomUUID().toString();
+        CAPTURE_ROUTE_REQUESTS.put(requestId, inputName);
+        sendRequest(webSocket, "SetInputSettings", requestData, requestId);
+    }
+
+    private static void handleCaptureRouteApplied(String requestId) {
+        String inputName = CAPTURE_ROUTE_REQUESTS.remove(requestId);
+        if (inputName == null) {
+            return;
+        }
+        AUDIENCE_ROUTE_APPLIED.set(true);
+        AUDIENCE_ROUTE_IN_FLIGHT.set(false);
+        LOGGER.info("OBS capture input '{}' now targets '{}'", inputName, AudienceWindowManager.captureSelector());
     }
 
     private static void updateRecording(JsonObject data) {
@@ -276,6 +463,22 @@ public final class OBSMonitor {
         message.addProperty("op", operationCode);
         message.add("d", data);
         webSocket.sendText(message.toString());
+    }
+
+    private static String sendRequest(WebSocket webSocket, String requestType, JsonObject requestPayload) {
+        String requestId = UUID.randomUUID().toString();
+        sendRequest(webSocket, requestType, requestPayload, requestId);
+        return requestId;
+    }
+
+    private static void sendRequest(WebSocket webSocket, String requestType, JsonObject requestPayload,
+                                    String requestId) {
+        JsonObject requestData = new JsonObject();
+        requestData.addProperty("requestType", requestType);
+        requestData.addProperty("requestId", requestId);
+        requestData.add("requestData", requestPayload);
+        // OBS WebSocket 5 Request messages use operation code 6.
+        send(webSocket, 6, requestData);
     }
 
     private static String computeAuthentication(String password, String salt, String challenge) {

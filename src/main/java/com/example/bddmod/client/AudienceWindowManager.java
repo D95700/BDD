@@ -4,7 +4,9 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GL11;
@@ -15,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 
 /**
  * Presents the audience texture in a small, separately capturable GLFW window.
@@ -39,6 +42,7 @@ public final class AudienceWindowManager {
             + "uniform sampler2D HiddenText;\n"
             + "uniform float Pulse;\n"
             + "uniform float Time;\n"
+            + "uniform float Active;\n"
             + "in vec2 TexCoord;\n"
             + "out vec4 FragColor;\n"
             + "float hash(vec2 value) {\n"
@@ -54,7 +58,7 @@ public final class AudienceWindowManager {
             + "    float distortionMask = 1.0 - smoothstep(0.10, 0.34, distortionDistance);\n"
             + "    float distortionWave = sin(distortionDistance * 46.0 - cycle * 2.0);\n"
             + "    vec2 distortionDirection = normalize(distortionAspect + vec2(0.00001));\n"
-            + "    float distortionStrength = (0.0010 + 0.0030 * Pulse) * distortionMask;\n"
+            + "    float distortionStrength = (0.0010 + 0.0030 * Pulse) * distortionMask * Active;\n"
             + "    vec2 warpedUv = clamp(TexCoord + distortionDirection / vec2(1.0, 1.7777778)\n"
             + "            * distortionWave * distortionStrength, vec2(0.001), vec2(0.999));\n"
             + "    vec4 source = texture(Texture, warpedUv);\n"
@@ -62,9 +66,9 @@ public final class AudienceWindowManager {
             + "    float grain = hash(block + vec2(floor(Time * 24.0))) - 0.5;\n"
             + "    float edge = 1.0 - smoothstep(0.0, 0.32, min(min(TexCoord.x, 1.0 - TexCoord.x),\n"
             + "            min(TexCoord.y, 1.0 - TexCoord.y)));\n"
-            + "    float amount = (0.004 + 0.018 * Pulse) * (0.15 + 0.85 * edge);\n"
+            + "    float amount = (0.004 + 0.018 * Pulse) * (0.15 + 0.85 * edge) * Active;\n"
             + "    vec3 color = source.rgb + vec3(grain * amount);\n"
-            + "    color += vec3(0.018, 0.0, 0.0) * edge * Pulse;\n"
+            + "    color += vec3(0.018, 0.0, 0.0) * edge * Pulse * Active;\n"
             + "    vec2 textUv = (TexCoord - vec2(0.62, 0.10)) / vec2(0.30, 0.07);\n"
             + "    float hiddenText = 0.0;\n"
             + "    if (all(greaterThanEqual(textUv, vec2(0.0)))\n"
@@ -73,7 +77,7 @@ public final class AudienceWindowManager {
             + "    }\n"
             + "    float reveal = smoothstep(0.68, 0.74, Time)\n"
             + "            * (1.0 - smoothstep(0.88, 0.94, Time));\n"
-            + "    float textAlpha = hiddenText * reveal * (0.22 + 0.28 * Pulse);\n"
+            + "    float textAlpha = hiddenText * reveal * (0.22 + 0.28 * Pulse) * Active;\n"
             + "    color = mix(color, vec3(0.42, 0.035, 0.035), textAlpha);\n"
             + "    FragColor = vec4(color, source.a);\n"
             + "}\n";
@@ -91,6 +95,7 @@ public final class AudienceWindowManager {
     private static int hiddenTextUniform;
     private static int pulseUniform;
     private static int timeUniform;
+    private static int activeUniform;
     private static boolean failed;
     private static int windowWidth;
     private static int windowHeight;
@@ -98,7 +103,7 @@ public final class AudienceWindowManager {
     private AudienceWindowManager() {
     }
 
-    public static boolean present(Minecraft minecraft, RenderTarget target) {
+    public static boolean present(Minecraft minecraft, RenderTarget target, boolean recording) {
         RenderSystem.assertOnRenderThread();
         if (failed || target == null || !AudienceRenderTargetManager.isReady()) {
             return false;
@@ -119,7 +124,7 @@ public final class AudienceWindowManager {
             }
             drawTexture(mainHandle, target.getColorTextureId(),
                     (float) RecordingPulseController.visualLevel(),
-                    (float) RecordingPulseController.phase());
+                    (float) RecordingPulseController.phase(), recording);
             return true;
         } catch (Throwable throwable) {
             failed = true;
@@ -137,6 +142,15 @@ public final class AudienceWindowManager {
             return "NOT OPEN";
         }
         return "OPEN " + windowWidth + "x" + windowHeight;
+    }
+
+    public static String captureSelector() {
+        String executable = ProcessHandle.current().info().command()
+                .map(Path::of)
+                .map(Path::getFileName)
+                .map(Path::toString)
+                .orElse("java.exe");
+        return WINDOW_TITLE + ":GLFW30:" + executable;
     }
 
     public static void release() {
@@ -160,6 +174,9 @@ public final class AudienceWindowManager {
         GLFW.glfwDefaultWindowHints();
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
+        GLFW.glfwWindowHint(GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE);
+        GLFW.glfwWindowHint(GLFW.GLFW_FOCUSED, GLFW.GLFW_FALSE);
+        GLFW.glfwWindowHint(GLFW.GLFW_FOCUS_ON_SHOW, GLFW.GLFW_FALSE);
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
@@ -172,19 +189,22 @@ public final class AudienceWindowManager {
             throw new IllegalStateException("GLFW could not create the shared audience window");
         }
 
-        GLFW.glfwSetWindowPos(window, 32, 32);
+        int[] hiddenPosition = outsideDesktopPosition();
+        GLFW.glfwSetWindowPos(window, hiddenPosition[0], hiddenPosition[1]);
         GLFW.glfwMakeContextCurrent(window);
         audienceCapabilities = GL.createCapabilities();
         GLFW.glfwSwapInterval(1);
         createPipeline();
         refreshWindowSize();
         GLFW.glfwShowWindow(window);
+        GLFW.glfwSetWindowPos(window, hiddenPosition[0], hiddenPosition[1]);
         restoreMinecraftContext();
-        LOGGER.info("Audience output window opened at {}x{}; OBS can capture the '{}' window",
-                windowWidth, windowHeight, WINDOW_TITLE);
+        OBSMonitor.requestAudienceCaptureRoute();
+        LOGGER.info("Audience output window opened off-screen at {}x{}; OBS can capture '{}'",
+                windowWidth, windowHeight, captureSelector());
     }
 
-    private static void drawTexture(long mainHandle, int textureId, float pulse, float phase) {
+    private static void drawTexture(long mainHandle, int textureId, float pulse, float phase, boolean recording) {
         GLFW.glfwMakeContextCurrent(window);
         GL.setCapabilities(audienceCapabilities);
         refreshWindowSize();
@@ -208,6 +228,7 @@ public final class AudienceWindowManager {
         GL20.glUniform1i(textureUniform, 0);
         GL20.glUniform1f(pulseUniform, pulse);
         GL20.glUniform1f(timeUniform, phase);
+        GL20.glUniform1f(activeUniform, recording ? 1.0F : 0.0F);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
         GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0L);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -239,6 +260,7 @@ public final class AudienceWindowManager {
         hiddenTextUniform = GL20.glGetUniformLocation(program, "HiddenText");
         pulseUniform = GL20.glGetUniformLocation(program, "Pulse");
         timeUniform = GL20.glGetUniformLocation(program, "Time");
+        activeUniform = GL20.glGetUniformLocation(program, "Active");
         hiddenTextTexture = createHiddenTextTexture();
 
         float[] vertices = {
@@ -295,6 +317,29 @@ public final class AudienceWindowManager {
         GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 4);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         return texture;
+    }
+
+    private static int[] outsideDesktopPosition() {
+        PointerBuffer monitors = GLFW.glfwGetMonitors();
+        int desktopRight = 0;
+        int desktopTop = 0;
+        if (monitors == null) {
+            return new int[] {32_000, 0};
+        }
+
+        int[] monitorX = new int[1];
+        int[] monitorY = new int[1];
+        for (int index = 0; index < monitors.limit(); index++) {
+            long monitor = monitors.get(index);
+            GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+            if (mode == null) {
+                continue;
+            }
+            GLFW.glfwGetMonitorPos(monitor, monitorX, monitorY);
+            desktopRight = Math.max(desktopRight, monitorX[0] + mode.width());
+            desktopTop = Math.min(desktopTop, monitorY[0]);
+        }
+        return new int[] {desktopRight + 64, desktopTop};
     }
 
     private static int[] glyphRows(char character) {
@@ -373,6 +418,7 @@ public final class AudienceWindowManager {
         hiddenTextUniform = -1;
         pulseUniform = -1;
         timeUniform = -1;
+        activeUniform = -1;
         windowWidth = 0;
         windowHeight = 0;
         restoreMinecraftContextIfPossible(mainHandle);

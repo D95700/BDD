@@ -1,5 +1,41 @@
 # BDD Mod Test Log
 
+## 1.3.0-alpha.3 automatic OBS audience capture routing runtime
+
+- Test date: 2026-09-21
+- Test type: Forge development-client runtime and OBS WebSocket 5 routing protocol test
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Runtime command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args='--quickPlaySingleplayer "新的世界"' --init-script build\tmp\codex-direct-javac.init.gradle` with a temporary OBS WebSocket 5 endpoint at `127.0.0.1:4455`
+- Build command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat build --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - development-client launch, mock and real OBS source routing, resource cleanup, compilation, packaging, and embedded metadata verification
+
+### Verified behaviors
+
+- The client loaded `1.3.0-alpha.3`, entered the single-player world, and kept `renderRouteTestEnabled = false` while `autoRouteAudienceCapture = true`.
+- With two enabled mock sources, the WebSocket request sequence inspected both settings, selected only the source targeting Minecraft, and sent `SetInputSettings` with `overlay = true` and `window = BDD Audience Output:GLFW30:java.exe`.
+- The `854x480` audience target and borderless audience window opened beyond the virtual desktop while OBS reported recording, then both released after the mock endpoint disconnected.
+- After reconnecting to the running OBS instance, the mod changed the current scene's enabled `game_capture` source to `BDD Audience Output:GLFW30:java.exe` without creating a new source. The final scheduling guard that waits for the audience window was subsequently build-verified.
+- The full `build` completed successfully; Gradle reported `test NO-SOURCE`, and the installable JAR contains version `1.3.0-alpha.3`, license `WTFPL`, and the bundled WebSocket dependency.
+
+### Not verified
+
+- The final recorded video pixels were not inspected, so long-duration off-screen capture continuity still requires a manual recording review.
+- The no-candidate and ambiguous-candidate safety branches were reviewed in source but were not exercised in this runtime session.
+
+### Warnings and observations
+
+- A plain `.\gradlew.bat build` attempt stopped before compilation with the environment-specific `Unable to establish loopback connection` error; the documented local workaround command above completed the same `build` task successfully.
+- Existing Forge/vanilla warnings about MDK language-provider metadata, Goat Horn sounds, `Sampler2`, performance counters, and Realms authorization were unrelated to this change.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log` and `run/logs/debug.log`.
+- Protocol transcript: `build/tmp/mock_obs_route_test.out`.
+- Installable artifact: `build/libs/bddmod-1.3.0-alpha.3-all.jar`, SHA-256 `BA9E47920D4227381E6F5FD175EC46754BD6BC87BA713434A17EE83576E1B6FF`.
+
 ## 1.3.0-alpha.2 hidden audience message runtime
 
 - Test date: 2026-09-21

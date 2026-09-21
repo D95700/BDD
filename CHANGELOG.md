@@ -19,6 +19,28 @@ This file records user-facing changes for the README, visual-design, and release
 - Added SemVer rules for `MAJOR.MINOR.PATCH`, hyphenated prereleases, optional plus-prefixed build metadata, numeric identifiers without leading zeroes, and version precedence.
 - Kept all existing `1.3.0.dev*` and earlier versions as immutable historical artifacts; no existing tag, release, or JAR is renamed.
 
+## 1.3.0-alpha.3 — automatic OBS audience capture routing
+
+### User-facing changes
+
+- The OBS recording source should now capture `BDD Audience Output`, not the player's Minecraft window, so audience-only distortion, grain, tint, and hidden text reach the final video.
+- While OBS is connected in a world, the audience window stays rendered off-screen and does not request focus, while remaining available to OBS Game Capture or Window Capture.
+- Once OBS is connected and the audience window is ready, the mod finds the enabled game/window capture source in the current program scene and switches its window target to `BDD Audience Output` automatically.
+- The source remains unchanged while terror mode is disabled or the audience window cannot be opened, avoiding an automatic switch to a missing target.
+- If no capture source exists, or multiple sources cannot be narrowed to exactly one Minecraft source, the mod leaves the scene unchanged and records a warning instead of modifying an arbitrary source.
+
+### Configuration and compatibility
+
+- Added `autoRouteAudienceCapture`, enabled by default, to allow the automatic OBS source update to be disabled in `bddmod-client.toml`.
+- `renderRouteTestEnabled` now controls only the player-visible diagnostic panel; the audience output itself runs automatically while OBS is connected and terror mode is enabled.
+- The routing workflow updates only the selected source's `window` setting and preserves its other Game Capture or Window Capture settings.
+
+### Technical behavior and verification
+
+- Uses OBS WebSocket 5 requests for the current program scene, scene items, input settings, and the final input-settings overlay update.
+- Version advanced to `1.3.0-alpha.3`; build and runtime/protocol verification are recorded in `TESTLOG.md`.
+- `README.md` remains unchanged under the post-release synchronization policy.
+
 ## 1.3.0-alpha.2 — hidden audience message
 
 ### User-facing changes

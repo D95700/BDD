@@ -8,10 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Small, deliberately conservative render-target probe used by the split-route test build.
+ * Renders the production audience route and its optional diagnostic panel.
  *
- * <p>This class visualizes the audience render-target and separate-window lifecycle. It remains
- * a diagnostic route; audience-only effects are added by later roadmap steps.</p>
+ * <p>The off-screen route remains active while OBS is connected. The configuration flag controls
+ * only the player-visible diagnostics, not whether OBS receives the audience output.</p>
  */
 public final class RenderRouteTestRenderer {
     private static final Logger LOGGER = LoggerFactory.getLogger("bddmod-render-route");
@@ -25,32 +25,28 @@ public final class RenderRouteTestRenderer {
     }
 
     public static void render(GuiGraphics graphics, Minecraft minecraft, boolean recording) {
-        if (!Config.RENDER_ROUTE_TEST_ENABLED.get()) {
-            AudienceRenderTargetManager.release();
-            return;
-        }
-
         int width = minecraft.getWindow().getGuiScaledWidth();
         int height = minecraft.getWindow().getGuiScaledHeight();
         if (width <= 0 || height <= 0) {
             return;
         }
 
-        if (!invocationLogged) {
+        boolean diagnosticsEnabled = Config.RENDER_ROUTE_TEST_ENABLED.get();
+        boolean audienceEnabled = OBSMonitor.isConnected() && Config.TERROR_MODE_ENABLED.get();
+        if (audienceEnabled && !invocationLogged) {
             invocationLogged = true;
-            LOGGER.info("Route-test GUI renderer active: {}x{}, recording={}, testEnabled={}",
-                    width, height, recording, Config.RENDER_ROUTE_TEST_ENABLED.get());
+            LOGGER.info("Audience GUI renderer active: {}x{}, recording={}, diagnostics={}",
+                    width, height, recording, diagnosticsEnabled);
         }
 
-        if (recording) {
+        if (audienceEnabled) {
             // Finish GUI batches before changing the active framebuffer.
             graphics.flush();
             boolean rendered = AudienceRenderTargetManager.renderFrame(minecraft, audienceTarget -> {
-                // The audience surface starts as a copy of the player's frame. Later milestones
-                // can add audience-only passes here without changing the main framebuffer.
+                // Audience-only post-processing is applied when the copied texture is presented.
             });
             if (rendered) {
-                AudienceWindowManager.present(minecraft, AudienceRenderTargetManager.getTarget());
+                AudienceWindowManager.present(minecraft, AudienceRenderTargetManager.getTarget(), recording);
             } else {
                 AudienceWindowManager.release();
             }
@@ -59,10 +55,11 @@ public final class RenderRouteTestRenderer {
             AudienceRenderTargetManager.release();
         }
 
-        // The diagnostic must remain visible even when the FBO probe itself fails.
-        drawDiagnosticPanel(graphics, minecraft, width, height, recording);
-        // Submit the diagnostic immediately while this overlay owns the GUI pass.
-        graphics.flush();
+        if (diagnosticsEnabled) {
+            // The diagnostic must remain visible even when the audience route itself fails.
+            drawDiagnosticPanel(graphics, minecraft, width, height, recording);
+            graphics.flush();
+        }
     }
 
     public static boolean isReady() {
