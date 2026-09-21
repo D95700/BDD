@@ -1,5 +1,41 @@
 # BDD Mod Test Log
 
+## 1.3.0-alpha.4 user visual acceptance
+
+- Test date: 2026-09-22
+- Test type: Real OBS recording and user visual/audio acceptance test
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args="--quickPlaySingleplayer 新的世界" --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: FAIL - runtime branches executed without a crash, but the user reported that the breathing sounded like wind and that the expected visual effects did not appear correctly
+
+### Runtime evidence
+
+- The client entered the existing single-player world, connected to the real OBS WebSocket service, opened the `854x480` off-screen audience window, and routed the active OBS capture input to `BDD Audience Output:GLFW30:java.exe`.
+- Three real recording intervals were detected: `01:23:05-01:23:13`, `01:23:18-01:24:21`, and `01:24:23-01:24:45`.
+- The recording vein, breathing/heartbeat audio, and shared pulse branches started and stopped with the OBS recording state.
+- During third-person rendering, the log recorded first-hit execution for `MOSAIC`, `DEFORMATION`, and `DISTORTION`, with finite projected center and radius values.
+- The client shut down normally and Gradle reported `BUILD SUCCESSFUL in 2m 48s`. No new crash report, audience OpenGL failure, or audience-shader exception was produced.
+
+### User-observed failures
+
+- The breathing track sounded like wind rather than recognizable breathing.
+- The expected audience visual effects did not appear correctly during the user's inspection. Log messages proving that a branch executed are therefore not treated as visual acceptance.
+- This result supersedes the earlier alpha.4 runtime-only PASS for subjective audio and visual quality; that earlier run did not include direct user inspection of the audience pixels.
+
+### Follow-up observations
+
+- The breathing implementation loops one OGG sample continuously and changes only its volume envelope, which may preserve a wind-like noise character even when synchronization is correct.
+- The head mode is reselected on every successful player render, while the distortion and deformation offsets are small at the observed head radius. Excessively rapid switching and low pixel displacement are plausible contributors, but this run did not isolate the root cause.
+- The OBS capture routing log confirms that settings were updated, but does not prove which final pixels OBS encoded; the capture path still requires frame-level verification during the repair.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log`.
+- OBS recordings: `E:/OBS/2026-09-22 01-23-04.mp4`, `E:/OBS/2026-09-22 01-23-18.mp4`, and `E:/OBS/2026-09-22 01-24-23.mp4`.
+
 ## 1.3.0-alpha.4 randomized audience player-head effects runtime
 
 - Test date: 2026-09-21
