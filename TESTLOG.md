@@ -938,5 +938,6 @@
 
 - Local Gradle output: `BUILD SUCCESSFUL`
 - Artifact verifier output: `verify_build: PASS`
+- Negative checks: PASS — missing artifact and version mismatch fixtures both returned exit code `1`.
 - CI workflow: `.github/workflows/ci.yml`
 - Verifier: `scripts/verify_build.py`
