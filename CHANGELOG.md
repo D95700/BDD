@@ -19,6 +19,20 @@ This file records user-facing changes for the README, visual-design, and release
 - Added SemVer rules for `MAJOR.MINOR.PATCH`, hyphenated prereleases, optional plus-prefixed build metadata, numeric identifiers without leading zeroes, and version precedence.
 - Kept all existing `1.3.0.dev*` and earlier versions as immutable historical artifacts; no existing tag, release, or JAR is renamed.
 
+## 1.3.0-alpha.1 — audience-only localized distortion
+
+### User-facing changes
+
+- Added a small, slowly drifting distortion region to the `BDD Audience Output` window while OBS recording is active.
+- The distortion follows the shared breathing and heartbeat pulse, remains restrained to a localized area, and does not affect the player's Minecraft window.
+- Retained the existing audience-only grain and dark-red edge tint; hidden audience text remains a later independent roadmap step.
+
+### Technical behavior and verification
+
+- The audience fragment shader now warps texture coordinates inside a feathered elliptical mask before applying the existing grain and tint pass.
+- Versioning switches immediately from the historical `1.3.0.dev*` format to the SemVer prerelease `1.3.0-alpha.1`.
+- Build and runtime verification are recorded in `TESTLOG.md`; `README.md` remains unchanged under the post-release synchronization policy.
+
 ## 1.3.0.dev3 — audience window orientation fix
 
 ### User-facing changes
