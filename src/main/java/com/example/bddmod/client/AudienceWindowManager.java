@@ -43,6 +43,10 @@ public final class AudienceWindowManager {
             + "uniform float Pulse;\n"
             + "uniform float Time;\n"
             + "uniform float Active;\n"
+            + "uniform vec2 HeadCenter;\n"
+            + "uniform vec2 HeadRadius;\n"
+            + "uniform float HeadMode;\n"
+            + "uniform float HeadActive;\n"
             + "in vec2 TexCoord;\n"
             + "out vec4 FragColor;\n"
             + "float hash(vec2 value) {\n"
@@ -61,7 +65,25 @@ public final class AudienceWindowManager {
             + "    float distortionStrength = (0.0010 + 0.0030 * Pulse) * distortionMask * Active;\n"
             + "    vec2 warpedUv = clamp(TexCoord + distortionDirection / vec2(1.0, 1.7777778)\n"
             + "            * distortionWave * distortionStrength, vec2(0.001), vec2(0.999));\n"
-            + "    vec4 source = texture(Texture, warpedUv);\n"
+            + "    vec2 safeHeadRadius = max(HeadRadius, vec2(0.0001));\n"
+            + "    vec2 headDelta = (warpedUv - HeadCenter) / safeHeadRadius;\n"
+            + "    float headDistance = length(headDelta);\n"
+            + "    float headMask = (1.0 - smoothstep(0.72, 1.08, headDistance)) * HeadActive;\n"
+            + "    if (HeadMode < 0.5) {\n"
+            + "        vec2 mosaicGrid = vec2(7.0, 8.0);\n"
+            + "        vec2 localUv = (warpedUv - HeadCenter) / safeHeadRadius;\n"
+            + "        vec2 mosaicUv = HeadCenter\n"
+            + "                + (floor(localUv * mosaicGrid) + 0.5) / mosaicGrid * safeHeadRadius;\n"
+            + "        warpedUv = mix(warpedUv, mosaicUv, headMask * 0.94);\n"
+            + "    } else if (HeadMode < 1.5) {\n"
+            + "        float wave = sin(headDistance * 28.0 - Time * 18.0);\n"
+            + "        vec2 direction = normalize(headDelta + vec2(0.0001));\n"
+            + "        warpedUv += direction * wave * headMask * 0.035 * safeHeadRadius;\n"
+            + "    } else {\n"
+            + "        float wave = sin(headDelta.y * 12.0 + Time * 10.0);\n"
+            + "        warpedUv += vec2(wave * 0.045, -headDelta.y * 0.16) * headMask * safeHeadRadius;\n"
+            + "    }\n"
+            + "    vec4 source = texture(Texture, clamp(warpedUv, vec2(0.001), vec2(0.999)));\n"
             + "    vec2 block = floor(TexCoord * vec2(160.0, 90.0));\n"
             + "    float grain = hash(block + vec2(floor(Time * 24.0))) - 0.5;\n"
             + "    float edge = 1.0 - smoothstep(0.0, 0.32, min(min(TexCoord.x, 1.0 - TexCoord.x),\n"
@@ -96,6 +118,10 @@ public final class AudienceWindowManager {
     private static int pulseUniform;
     private static int timeUniform;
     private static int activeUniform;
+    private static int headCenterUniform;
+    private static int headRadiusUniform;
+    private static int headModeUniform;
+    private static int headActiveUniform;
     private static boolean failed;
     private static int windowWidth;
     private static int windowHeight;
@@ -229,6 +255,13 @@ public final class AudienceWindowManager {
         GL20.glUniform1f(pulseUniform, pulse);
         GL20.glUniform1f(timeUniform, phase);
         GL20.glUniform1f(activeUniform, recording ? 1.0F : 0.0F);
+        GL20.glUniform2f(headCenterUniform, AudienceHeadEffectController.centerX(),
+                AudienceHeadEffectController.centerY());
+        GL20.glUniform2f(headRadiusUniform, AudienceHeadEffectController.radiusX(),
+                AudienceHeadEffectController.radiusY());
+        GL20.glUniform1f(headModeUniform, AudienceHeadEffectController.mode());
+        GL20.glUniform1f(headActiveUniform,
+                AudienceHeadEffectController.isActive(recording) ? 1.0F : 0.0F);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
         GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0L);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -261,6 +294,10 @@ public final class AudienceWindowManager {
         pulseUniform = GL20.glGetUniformLocation(program, "Pulse");
         timeUniform = GL20.glGetUniformLocation(program, "Time");
         activeUniform = GL20.glGetUniformLocation(program, "Active");
+        headCenterUniform = GL20.glGetUniformLocation(program, "HeadCenter");
+        headRadiusUniform = GL20.glGetUniformLocation(program, "HeadRadius");
+        headModeUniform = GL20.glGetUniformLocation(program, "HeadMode");
+        headActiveUniform = GL20.glGetUniformLocation(program, "HeadActive");
         hiddenTextTexture = createHiddenTextTexture();
 
         float[] vertices = {
@@ -419,6 +456,10 @@ public final class AudienceWindowManager {
         pulseUniform = -1;
         timeUniform = -1;
         activeUniform = -1;
+        headCenterUniform = -1;
+        headRadiusUniform = -1;
+        headModeUniform = -1;
+        headActiveUniform = -1;
         windowWidth = 0;
         windowHeight = 0;
         restoreMinecraftContextIfPossible(mainHandle);

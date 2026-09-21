@@ -2,6 +2,7 @@ package com.example.bddmod.client.event;
 
 import com.example.bddmod.Config;
 import com.example.bddmod.client.BDDSessionData;
+import com.example.bddmod.client.AudienceHeadEffectController;
 import com.example.bddmod.client.OBSMonitor;
 import com.example.bddmod.client.OBSSetupScreen;
 import com.example.bddmod.client.RecordingPulseController;
@@ -16,6 +17,7 @@ import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -43,12 +45,18 @@ public final class ClientEventHandler {
         }
 
         clientTicks++;
+        AudienceHeadEffectController.beginFrame();
         boolean recording = OBSMonitor.isRecording();
         RecordingPulseController.update(recording && Config.TERROR_MODE_ENABLED.get());
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null && minecraft.level != null) {
             BDDSessionData.get().tick(recording, minecraft.screen == null);
         }
+    }
+
+    @SubscribeEvent
+    public static void onRenderPlayer(RenderPlayerEvent.Pre event) {
+        AudienceHeadEffectController.captureLocalPlayerHead(event.getEntity(), event.getPartialTick());
     }
 
     @SubscribeEvent

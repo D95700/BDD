@@ -1,5 +1,42 @@
 # BDD Mod Test Log
 
+## 1.3.0-alpha.4 randomized audience player-head effects runtime
+
+- Test date: 2026-09-21
+- Test type: Forge development-client runtime test - third-person head projection, randomized audience shader modes, and mock OBS routing
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium)
+- Mod ID: `bddmod`
+- Runtime command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable -Dbddmod.testThirdPerson=true'; .\gradlew.bat runClient --args="--quickPlaySingleplayer 新的世界" --init-script build\tmp\codex-direct-javac.init.gradle` with a temporary OBS WebSocket 5 endpoint at `127.0.0.1:4456`
+- Build command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat build --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS - development-client launch, third-person local-head projection, all three randomized modes, audience shader execution, final packaging, and embedded metadata verification
+
+### Verified behaviors
+
+- The client loaded `1.3.0-alpha.4`, entered the existing single-player world, connected to the isolated mock OBS endpoint, and opened the `854x480` off-screen audience target and window.
+- A temporary JVM-gated test hook selected third-person view after entering the world. It was removed before the final build and is not present in the packaged source or JAR.
+- The projected head center and radii were finite and plausible. The runtime log recorded `DISTORTION`, `DEFORMATION`, and `MOSAIC` at center approximately `(0.5, 0.4975)` with radius approximately `(0.0386, 0.0735)`.
+- The mock capture source was routed to `BDD Audience Output:GLFW30:java.exe`, exercising the audience-only render path while the three head modes were selected.
+- No new crash report, audience-shader failure, OpenGL exception, or render-thread error was produced during the run.
+- The final source without the temporary test hook completed the full `build`; Gradle reported `test NO-SOURCE`, and the installable JAR embeds version `1.3.0-alpha.4` and license `WTFPL`.
+
+### Not verified
+
+- The off-screen audience window's pixels were not visually inspected because the local computer-control interface could not enumerate Windows application windows. Mode execution and projected coordinates are runtime-log verified, but the subjective mosaic, distortion, deformation, masking, and transition appearance still requires manual recording review.
+- First-person suppression was source-reviewed but was not independently exercised during this third-person runtime test.
+- The real OBS process listening on `4455` was deliberately left untouched; this run used the mock endpoint on `4456` and did not inspect a recorded video.
+
+### Warnings and observations
+
+- The existing vanilla warning that `rendertype_entity_translucent_emissive` could not find `Sampler2` remained; no warning named the audience shader or any of its new uniforms.
+- The development task was interrupted after the required evidence was collected, so a menu-driven client shutdown was not covered. The mock endpoint's expected connection-reset traceback occurred when the client and endpoint were stopped.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log`, especially the audience creation and three first-hit mode records at `21:49:18`.
+- Final installable artifact: `build/libs/bddmod-1.3.0-alpha.4-all.jar` (220892 bytes), SHA-256 `013D559FCB81C814F6A31F2EB3124349772E67C092136A7F3D024E31A7BF1A0D`.
+
 ## 1.3.0-alpha.3 automatic OBS audience capture routing runtime
 
 - Test date: 2026-09-21

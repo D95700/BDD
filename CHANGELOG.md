@@ -19,6 +19,22 @@ This file records user-facing changes for the README, visual-design, and release
 - Added SemVer rules for `MAJOR.MINOR.PATCH`, hyphenated prereleases, optional plus-prefixed build metadata, numeric identifiers without leading zeroes, and version precedence.
 - Kept all existing `1.3.0.dev*` and earlier versions as immutable historical artifacts; no existing tag, release, or JAR is renamed.
 
+## 1.3.0-alpha.4 — randomized audience-only player-head effects
+
+### User-facing changes
+
+- When the local player's head is rendered in third-person view during recording, the audience output now randomly applies one of three head-localized treatments on every render: mosaic, radial distortion, or deformation.
+- The effect follows the projected head position and apparent size as the camera moves instead of using a fixed screen location.
+- Head treatments remain exclusive to `BDD Audience Output`; the player's Minecraft window is unchanged.
+- Effects are skipped in first-person view, where Minecraft does not render the local player's head, and whenever the projected head is behind the camera or outside a safe visible range.
+
+### Technical behavior and verification
+
+- Projects the interpolated local-player eye position and camera-relative head extents into audience texture coordinates from Forge's player render event.
+- Keeps the three effects inside a feathered elliptical head mask and guards inactive uniforms against invalid shader coordinates.
+- Version advanced to `1.3.0-alpha.4`; build and runtime verification are recorded in `TESTLOG.md`.
+- `README.md` remains unchanged under the post-release synchronization policy.
+
 ## 1.3.0-alpha.3 — automatic OBS audience capture routing
 
 ### User-facing changes
