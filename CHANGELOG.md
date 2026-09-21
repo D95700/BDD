@@ -19,6 +19,24 @@ This file records user-facing changes for the README, visual-design, and release
 - Added SemVer rules for `MAJOR.MINOR.PATCH`, hyphenated prereleases, optional plus-prefixed build metadata, numeric identifiers without leading zeroes, and version precedence.
 - Kept all existing `1.3.0.dev*` and earlier versions as immutable historical artifacts; no existing tag, release, or JAR is renamed.
 
+## 1.4.0-alpha.1 — automated build and artifact verification
+
+### User-facing changes
+
+- Added continuous build verification for pull requests and pushes to `main`.
+- Installable `-all.jar` artifacts are checked automatically before they are retained as CI artifacts.
+
+### Configuration and compatibility
+
+- No gameplay or configuration behavior changed in this prerelease.
+- `README.md` remains unchanged because this is a development prerelease.
+
+### Technical behavior and verification
+
+- GitHub Actions now runs `compileJava`, `processResources`, `build`, and the standard-library artifact verifier on Java 17.
+- The verifier checks SemVer metadata, embedded mod version, WTFPL license, bundled `nv-websocket-client-2.14`, required resources, and SHA-256 output.
+- Runtime screenshots remain a manual client-test responsibility and must be recorded in `TESTLOG.md`; CI does not require a graphical desktop or live OBS instance.
+
 ## 1.3.0 — stable release
 
 ### User-facing changes

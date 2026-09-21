@@ -910,3 +910,33 @@
 - Gradle output: `BUILD SUCCESSFUL in 19s`
 - Artifact: `build/libs/bddmod-1.3.0-all.jar`
 - Runtime test evidence: not generated for the stable promotion.
+
+## 1.4.0-alpha.1 local build and artifact verification
+
+- Test date: 2026-09-22
+- Test type: Local prerelease build and installable-artifact verification
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java runtime: 11 (`JAVA_HOME=C:\Program Files\Java\jdk-11`); Java 17 remains the configured bytecode target and CI runtime
+- Mod: `bddmod`
+- Commands: `.\gradlew.bat compileJava`; `.\gradlew.bat processResources`; `.\gradlew.bat build --init-script build\tmp\codex-direct-javac.init.gradle`; `python scripts\verify_build.py`
+- Result: PASS — local build and artifact verification completed
+
+### Verified behaviors
+
+- The version is `1.4.0-alpha.1` and the generated installable artifact is `build/libs/bddmod-1.4.0-alpha.1-all.jar`.
+- The verifier checks embedded version, WTFPL license, bundled `nv-websocket-client-2.14`, required resources, and SHA-256.
+- Artifact SHA-256: `12050E0FD9C7E36B86A4E949E981FE85F9A92E7B7F90A73FA28C1CB2EDBDF7D1`.
+- The new GitHub Actions workflow is configured for pull requests and pushes to `main`, using Java 17 and no Release or tag mutation.
+
+### Manual runtime evidence format
+
+- Development-client tests remain manual and must record the exact `runClient` command, result, runtime log path, screenshot path when available, and verified versus unverified behavior.
+- No `runClient` session or runtime screenshot was executed for this alpha.1 implementation; gameplay, OBS, rendering, and audio behavior remain unverified for this change.
+
+### Evidence
+
+- Local Gradle output: `BUILD SUCCESSFUL`
+- Artifact verifier output: `verify_build: PASS`
+- CI workflow: `.github/workflows/ci.yml`
+- Verifier: `scripts/verify_build.py`
