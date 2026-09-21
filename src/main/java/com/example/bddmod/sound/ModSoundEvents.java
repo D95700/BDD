@@ -12,7 +12,6 @@ public final class ModSoundEvents {
     private static final DeferredRegister<SoundEvent> SOUND_EVENTS =
             DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BDDMod.MODID);
 
-    public static final RegistryObject<SoundEvent> RECORDING_BREATH = register("recording_breath");
     public static final RegistryObject<SoundEvent> RECORDING_HEARTBEAT = register("recording_heartbeat");
 
     private ModSoundEvents() {

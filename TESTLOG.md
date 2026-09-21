@@ -852,3 +852,32 @@
 - Runtime log: `run/logs/latest.log`
 - Test world created during the run: `run/saves/新的世界/`
 - Gradle output: `BUILD SUCCESSFUL in 4m 24s`
+
+## 1.3.0-alpha.6 verification result
+
+- Test date: 2026-09-22
+- Test type: Build and resource verification after removing recording breathing audio
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java runtime: 11 (`JAVA_HOME=C:\Program Files\Java\jdk-11`); Java 17 remains the configured bytecode target
+- Mod: `bddmod`
+- Command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat build --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS — `BUILD SUCCESSFUL` (18s)
+
+### Verified behaviors
+
+- Java compilation, resource processing, reobfuscation, shaded JAR packaging, and the full Gradle `build` task completed successfully.
+- The distributable artifact was produced at `build/libs/bddmod-1.3.0-alpha.6-all.jar`.
+- The packaged metadata reports version `1.3.0-alpha.6` and license `WTFPL`.
+- The packaged sound registry contains only `recording_heartbeat`; no breathing sound entry or asset is present.
+- SHA-256: `A14F20A826AA99BB273D4B3F8F624D92F95456443436107CBADDFE8F29197864`.
+
+### Not covered
+
+- No development-client runtime session was run for this change, so in-game heartbeat playback, visual pulse synchronization, and the absence of breathing audio were not independently verified in a live world.
+
+### Evidence
+
+- Gradle output: `BUILD SUCCESSFUL in 18s`
+- Artifact: `build/libs/bddmod-1.3.0-alpha.6-all.jar`
+- Runtime test evidence: not generated for this change.

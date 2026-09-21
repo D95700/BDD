@@ -1,9 +1,4 @@
 {
-  "recording_breath": {
-    "sounds": [
-      "bddmod:recording_breath"
-    ]
-  },
   "recording_heartbeat": {
     "sounds": [
       "bddmod:recording_heartbeat"

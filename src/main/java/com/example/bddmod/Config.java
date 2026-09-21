@@ -14,7 +14,7 @@ public final class Config {
             .comment("连接 OBS 后，将当前场景中唯一可识别的游戏/窗口采集源切换到 BDD 观众窗口")
             .define("autoRouteAudienceCapture", true);
     public static final ForgeConfigSpec.DoubleValue RECORDING_AUDIO_VOLUME = BUILDER
-            .comment("游戏内录制呼吸与心跳音量，0 到 1；同时受 Minecraft 主音量和环境音效音量控制")
+            .comment("游戏内录制心跳音量，0 到 1；同时受 Minecraft 主音量和环境音效音量控制")
             .defineInRange("recordingAudioVolume", 0.30D, 0.0D, 1.0D);
     public static final ForgeConfigSpec.ConfigValue<String> OBS_WEBSOCKET_PASSWORD = BUILDER
             .comment("OBS WebSocket 5 密码；留空表示 OBS 未启用密码")

@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Shared clock for recording-time visuals, breathing, and heartbeat audio.
+ * Shared clock for recording-time visuals and heartbeat audio.
  */
 public final class RecordingPulseController {
     private static final Logger LOGGER = LoggerFactory.getLogger("bddmod-recording-pulse");

@@ -19,6 +19,24 @@ This file records user-facing changes for the README, visual-design, and release
 - Added SemVer rules for `MAJOR.MINOR.PATCH`, hyphenated prereleases, optional plus-prefixed build metadata, numeric identifiers without leading zeroes, and version precedence.
 - Kept all existing `1.3.0.dev*` and earlier versions as immutable historical artifacts; no existing tag, release, or JAR is renamed.
 
+## 1.3.0-alpha.6 — remove breathing audio
+
+### User-facing changes
+
+- Removed the in-game breathing sound from recording mode.
+- Recording mode now keeps only the heartbeat audio while preserving the synchronized visual pulse, dark-red veins, and audience effects.
+
+### Configuration and compatibility
+
+- `recordingAudioVolume` now controls the heartbeat sound only; the existing configuration key remains compatible.
+- Removed the unused breathing sound asset and registry entry. No new installation step is required.
+- Version advanced to `1.3.0-alpha.6`; `README.md` remains unchanged under the post-release synchronization policy.
+
+### Technical behavior and verification
+
+- Removed breathing playback and cleanup from the client sound controller while retaining heartbeat phase detection and visual breath envelopes.
+- Build and resource verification are recorded in `TESTLOG.md`.
+
 ## 1.3.0-alpha.5 — visible audience effects and distinct breathing cadence
 
 ### User-facing changes

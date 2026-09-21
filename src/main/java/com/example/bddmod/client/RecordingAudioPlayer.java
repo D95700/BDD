@@ -23,8 +23,7 @@ public final class RecordingAudioPlayer {
 
         active = true;
         previousPhase = RecordingPulseController.phase();
-        playBreath();
-        LOGGER.info("Synchronized in-game breathing and heartbeat audio started");
+        LOGGER.info("Synchronized in-game heartbeat audio started");
     }
 
     public static void tick() {
@@ -35,9 +34,6 @@ public final class RecordingAudioPlayer {
 
         double currentPhase = RecordingPulseController.phase();
         if (!Double.isNaN(previousPhase)) {
-            if (previousPhase > currentPhase) {
-                playBreath();
-            }
             for (int index = 0; index < RecordingPulseController.heartbeatCount(); index++) {
                 double heartbeatPhase = RecordingPulseController.heartbeatPhase(index);
                 if (crossedPhase(previousPhase, currentPhase, heartbeatPhase)) {
@@ -53,22 +49,11 @@ public final class RecordingAudioPlayer {
         active = false;
         previousPhase = Double.NaN;
         Minecraft.getInstance().getSoundManager().stop(
-                ModSoundEvents.RECORDING_BREATH.get().getLocation(), SoundSource.AMBIENT);
-        Minecraft.getInstance().getSoundManager().stop(
                 ModSoundEvents.RECORDING_HEARTBEAT.get().getLocation(), SoundSource.AMBIENT);
         if (!wasActive) {
             return;
         }
-        LOGGER.info("Synchronized in-game breathing and heartbeat audio stopped");
-    }
-
-    private static void playBreath() {
-        float volume = (float) (Config.RECORDING_AUDIO_VOLUME.get() * 0.55D);
-        if (volume <= 0.0F) {
-            return;
-        }
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forLocalAmbience(
-                ModSoundEvents.RECORDING_BREATH.get(), 1.0F, volume));
+        LOGGER.info("Synchronized in-game heartbeat audio stopped");
     }
 
     private static void playHeartbeat(double strength) {
