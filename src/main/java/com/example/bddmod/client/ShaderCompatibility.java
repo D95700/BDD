@@ -18,7 +18,8 @@ public final class ShaderCompatibility {
         OCULUS_ACTIVE_SHADER_PACK,
         IRIS_NO_SHADER_PACK,
         IRIS_ACTIVE_SHADER_PACK,
-        UNSUPPORTED
+        UNSUPPORTED,
+        CAPTURE_FAILED
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger("bddmod-shader-compatibility");
@@ -28,18 +29,41 @@ public final class ShaderCompatibility {
 
     private static boolean checked;
     private static RouteStatus status = RouteStatus.UNSUPPORTED;
+    private static volatile String captureFailure = "";
 
     private ShaderCompatibility() {
     }
 
     public static RouteStatus routeStatus() {
         ensureChecked();
-        return status;
+        return captureFailure.isEmpty() ? status : RouteStatus.CAPTURE_FAILED;
     }
 
     /** Returns a compact status for the optional route diagnostic panel. */
     public static String describeAudienceRoute() {
         return routeStatus().name();
+    }
+
+    public static String describeCaptureFailure() {
+        if (captureFailure.isEmpty()) {
+            return "NONE";
+        }
+        return captureFailure.length() <= 64 ? captureFailure : captureFailure.substring(0, 61) + "...";
+    }
+
+    public static void reportCaptureFailure(String failure) {
+        String reason = failure == null || failure.isBlank() ? "unknown capture failure" : failure;
+        if (!reason.equals(captureFailure)) {
+            captureFailure = reason;
+            LOGGER.warn("Audience framebuffer capture failed; output fallback is active: {}", reason);
+        }
+    }
+
+    public static void reportCaptureSuccess() {
+        if (!captureFailure.isEmpty()) {
+            LOGGER.info("Audience framebuffer capture recovered; output fallback cleared");
+            captureFailure = "";
+        }
     }
 
     private static void ensureChecked() {

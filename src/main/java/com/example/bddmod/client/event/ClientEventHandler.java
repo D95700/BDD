@@ -3,6 +3,8 @@ package com.example.bddmod.client.event;
 import com.example.bddmod.Config;
 import com.example.bddmod.client.BDDSessionData;
 import com.example.bddmod.client.AudienceHeadEffectController;
+import com.example.bddmod.client.AudienceRenderTargetManager;
+import com.example.bddmod.client.AudienceWindowManager;
 import com.example.bddmod.client.OBSMonitor;
 import com.example.bddmod.client.OBSSetupScreen;
 import com.example.bddmod.client.RecordingPulseController;
@@ -17,9 +19,11 @@ import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.GameShuttingDownEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -52,6 +56,22 @@ public final class ClientEventHandler {
         if (minecraft.player != null && minecraft.level != null) {
             BDDSessionData.get().tick(recording, minecraft.screen == null);
         }
+    }
+
+    @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        releaseAudienceResources();
+    }
+
+    @SubscribeEvent
+    public static void onGameShuttingDown(GameShuttingDownEvent event) {
+        releaseAudienceResources();
+        OBSMonitor.stop();
+    }
+
+    private static void releaseAudienceResources() {
+        AudienceWindowManager.release();
+        AudienceRenderTargetManager.release();
     }
 
     @SubscribeEvent

@@ -2,6 +2,30 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.4.0-alpha.4 - client shutdown cleanup and capture diagnostics
+
+### User-facing verification
+
+- Audience output resources now release when leaving a world or closing the client, so an OBS disconnect cannot leave a stale shared window or framebuffer behind.
+- The optional route diagnostic panel now identifies framebuffer capture failure separately from shader-loader compatibility and shows the most recent fallback reason.
+
+### Test-record status
+
+- This micro-step adds explicit Forge shutdown hooks and broader OpenGL state restoration around final-frame capture.
+- Live menu-driven shutdown and screenshot evidence still require a graphical client session; the local desktop-control channel was unavailable during this run.
+
+## 1.4.0-alpha.3 — OBS disconnect cleanup verification
+
+### User-facing verification
+
+- Verified that an active audience window and its off-screen framebuffer are released when OBS disconnects, while the Minecraft player window continues running.
+- Verified automatic OBS reconnect recreates the audience output and resumes synchronized recording heartbeat audio and visual pulse transitions.
+
+### Test-record status
+
+- This closes the alpha.3 active-output disconnect/reconnect test gap using Vanilla Forge 47.4.10 with a local mock OBS WebSocket 5 endpoint.
+- Screenshot capture and normal menu-driven client shutdown remain open items for the beta acceptance matrix.
+
 ## 1.4.0-alpha.3 — user Oculus acceptance clarification
 
 ### User-facing verification

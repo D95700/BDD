@@ -1,5 +1,62 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.4 compile and shutdown-resource implementation check
+
+- Test date: 2026-09-22
+- Test type: Source/resource verification for Forge client shutdown hooks and framebuffer fallback diagnostics
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17 bytecode target; local Gradle direct-javac init script used where required by the environment
+- Mod ID: `bddmod`
+- Commands: `./gradlew.bat compileJava --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; `./gradlew.bat processResources --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; `./gradlew.bat build --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; `python scripts\\verify_build.py`
+- Result: PASS for compile, resource processing, full build, and packaged artifact verification
+
+### Intended coverage
+
+- Forge `LoggingOut` and `GameShuttingDownEvent` now release the audience window and render target; physical client shutdown also stops the OBS reconnect executor.
+- Capture failures report `CAPTURE_FAILED` to the diagnostic status while preserving the player route.
+- Final-frame capture restores read/draw framebuffer and buffer selections, viewport, scissor, texture/program/VAO/buffer bindings.
+- The installable artifact is `build/libs/bddmod-1.4.0-alpha.4-all.jar`; embedded version is `1.4.0-alpha.4`, license is `WTFPL`, and SHA-256 is `157C5E4895822E37FAAAEBECA37F9626F423D47A7A8881CC7D6B2E8A51A5601A`.
+
+### Not covered
+
+- A graphical client session, screenshot capture, and menu-driven shutdown remain unverified because the desktop-control channel is unavailable.
+
+### Evidence
+
+- Gradle output: `BUILD SUCCESSFUL`
+- Artifact verifier output: `verify_build: PASS`
+- Artifact: `build/libs/bddmod-1.4.0-alpha.4-all.jar`
+
+## 1.4.0-alpha.3 Vanilla OBS disconnect with active audience output
+
+- Test date: 2026-09-22
+- Test type: Forge development-client runtime test with an isolated mock OBS WebSocket 5 endpoint; disconnect and automatic reconnect while the audience window was already active
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: runtime reported by ModLauncher as 17.0.15 (Eclipse Adoptium); Gradle invocation used the repository direct-javac init script
+- Mod ID: `bddmod`
+- Command: `$env:JAVA_HOME='C:\Program Files\Java\jdk-21'; $env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --no-daemon --args='--quickPlaySingleplayer 新的世界' --init-script build\tmp\codex-direct-javac.init.gradle`; temporary mock OBS endpoint `127.0.0.1:4456` was selected only for this run and the repository config was restored to `4455` afterward
+- Result: PASS for active-output disconnect cleanup and reconnect; INCOMPLETE for normal client shutdown and screenshot evidence
+
+### Verified
+
+- The client entered the existing single-player world and created the `854x480` audience render target and independent `BDD Audience Output:GLFW30:java.exe` window.
+- The mock OBS route switched the scene capture input to the audience window before the forced disconnect.
+- When OBS closed the active socket (`code=1012`, `mock restart`), the next render tick released both `Audience output window resources` and the `Audience render target` without a player-render crash.
+- The client reconnected automatically, recreated the audience target/window, resumed OBS identification, and processed recording `RECORDING`/`STANDBY` transitions with synchronized heartbeat audio and recording pulse start/stop.
+
+### Not covered
+
+- No player/audience screenshot was captured.
+- The client was stopped with Ctrl+C after the reconnect cycle, so normal menu-driven client shutdown and its final resource-release sequence remain unverified.
+- This run used Vanilla Forge userdev; it does not add new Oculus Shader Pack evidence beyond the maintainer's production-launcher acceptance recorded above.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log` (audience creation at `12:37:10`, cleanup at `12:37:25`, reconnect and recreation at `12:37:26`)
+- Mock server transcript: `build/tmp/mock_obs_reconnect_test.out` (`ROUTE_WINDOW`, `SERVER_DROP_BEGIN`, second `CONNECTED`, and repeated routing requests)
+
 ## 1.4.0-alpha.3 Vanilla development-client startup recheck
 
 - Test date: 2026-09-22

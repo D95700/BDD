@@ -2,6 +2,9 @@ package com.example.bddmod.client;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 /**
@@ -28,6 +31,13 @@ interface AudienceFrameCapture {
         public CaptureResult capture(RenderTarget target) {
             int previousRead = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
             int previousDraw = GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
+            int previousReadBuffer = GL11.glGetInteger(GL11.GL_READ_BUFFER);
+            int previousDrawBuffer = GL11.glGetInteger(GL11.GL_DRAW_BUFFER);
+            int previousActiveTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+            int previousProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
+            int previousVao = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
+            int previousArrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
+            int previousElementBuffer = GL11.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING);
             int[] viewport = new int[4];
             int[] scissor = new int[4];
             GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
@@ -57,6 +67,7 @@ interface AudienceFrameCapture {
                     return CaptureResult.failure("glBlitFramebuffer returned OpenGL error 0x"
                             + Integer.toHexString(error));
                 }
+                ShaderCompatibility.reportCaptureSuccess();
                 return CaptureResult.success("CURRENT_FRAMEBUFFER fbo=" + previousRead
                         + " " + sourceWidth + "x" + sourceHeight);
             } catch (Throwable throwable) {
@@ -65,8 +76,15 @@ interface AudienceFrameCapture {
             } finally {
                 GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, previousRead);
                 GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, previousDraw);
+                GL11.glReadBuffer(previousReadBuffer);
+                GL11.glDrawBuffer(previousDrawBuffer);
                 GL11.glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
                 GL11.glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+                GL13.glActiveTexture(previousActiveTexture);
+                GL20.glUseProgram(previousProgram);
+                GL30.glBindVertexArray(previousVao);
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, previousArrayBuffer);
+                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, previousElementBuffer);
                 if (scissorEnabled) {
                     GL11.glEnable(GL11.GL_SCISSOR_TEST);
                 } else {

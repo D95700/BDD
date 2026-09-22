@@ -70,7 +70,7 @@ public final class RenderRouteTestRenderer {
     private static void drawDiagnosticPanel(GuiGraphics graphics, Minecraft minecraft, int width, int height,
                                             boolean recording) {
         int panelWidth = Math.min(560, width - 16);
-        int panelHeight = 104;
+        int panelHeight = 122;
         int left = 8;
         int top = 8;
         int split = left + panelWidth / 2;
@@ -98,5 +98,8 @@ public final class RenderRouteTestRenderer {
         graphics.drawString(minecraft.font,
                 Component.literal("FBO: " + AudienceRenderTargetManager.describeState()),
                 split + 8, top + 74, 0xFFFFFFFF, true);
+        graphics.drawString(minecraft.font,
+                Component.literal("FALLBACK: " + ShaderCompatibility.describeCaptureFailure()),
+                left + 8, top + 92, 0xFFFFCC66, true);
     }
 }

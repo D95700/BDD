@@ -138,6 +138,29 @@ public final class OBSMonitor {
         });
     }
 
+    /** Stops background reconnect work when the physical client is closing. */
+    public static void stop() {
+        ScheduledExecutorService currentExecutor = executor;
+        if (currentExecutor == null) {
+            return;
+        }
+        CONNECTION_GENERATION.incrementAndGet();
+        WebSocket previousSocket = socket;
+        WebSocket previousPendingSocket = pendingSocket;
+        socket = null;
+        pendingSocket = null;
+        CONNECTING.set(false);
+        clearState();
+        disconnectQuietly(previousSocket, "client shutting down");
+        if (previousPendingSocket != previousSocket) {
+            disconnectQuietly(previousPendingSocket, "client shutting down");
+        }
+        currentExecutor.shutdownNow();
+        executor = null;
+        STARTED.set(false);
+        LOGGER.info("OBS monitor stopped and disconnected resources released");
+    }
+
     private static void connectIfNeeded() {
         if (socket != null || pendingSocket != null || !CONNECTING.compareAndSet(false, true)) {
             return;

@@ -48,6 +48,7 @@ public final class AudienceRenderTargetManager {
             AudienceFrameCapture.CaptureResult capture = FRAME_CAPTURE.capture(target);
             lastCaptureSource = capture.source();
             if (!capture.success()) {
+                ShaderCompatibility.reportCaptureFailure(capture.failure());
                 throw new IllegalStateException(capture.failure());
             }
             target.bindWrite(true);
