@@ -1,5 +1,35 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.6 PCL2 Oculus no-Shader-Pack startup probe
+
+- Test date: 2026-09-23
+- Test type: Production PCL2 client startup and OBS state-transition probe
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15
+- Mod ID: `bddmod`
+- Client artifact: `bddmod-1.4.0-alpha.5-all.jar`; alpha.6 changes reproducible packaging only, not the client renderer.
+- Commands: PCL2 profile `1.20.1-Forge_47.4.10-BDD-Beta` with `oculus-mc1.20.1-1.8.0.jar` and `embeddium-0.3.31+mc1.20.1.jar` in `mods/`, an empty `shaderpacks/` directory, and `python build\\tmp\\mock_obs_route_test.py` on `127.0.0.1:4455`. The temporary mock was stopped after the observed connection state transition.
+- Result: FAIL (incomplete) - Oculus and BDD loaded successfully, but the session did not reach an in-world HUD render, so audience capture, the observer window, and framebuffer cleanup were not exercised.
+
+### Verified
+
+- Oculus `1.20.1-1.8.0` initialized in the real Forge/PCL2 profile and logged `Shaders are disabled because no valid shaderpack is selected`.
+- The alpha.5 installable BDD artifact loaded alongside Oculus and Embeddium; it did not reproduce the earlier Forge userdev mixin bootstrap failure.
+- BDD connected to the local OBS WebSocket 5 mock, entered the `RECORDING` state, and started its synchronized heartbeat audio and visual pulse.
+- Stopping the local mock stopped the heartbeat audio and visual pulse while the Minecraft client remained responsive.
+
+### Not covered
+
+- No `Audience GUI renderer active`, `Audience shader route detected`, target-ready, observer-window, or framebuffer-capture event was produced before the mock was stopped.
+- The no-Shader-Pack audience-route, OBS capture routing, observer-resource release, and player-window continuity gates remain open until the existing profile is in a single-player world during the probe.
+- This does not test an active Shader Pack and does not advance the beta acceptance gate.
+
+### Evidence
+
+- Runtime log: `E:\\PCL2\\RE\\幻想物语RE正式版客户端\\.minecraft\\versions\\1.20.1-Forge_47.4.10-BDD-Beta\\logs\\debug.log` (Oculus startup near `03:11:26`, OBS connection at `03:12:37`, and heartbeat/pulse stop at `03:18:08`).
+- Mock transcript: `build/tmp/mock_obs_route_test.out`.
+
 ## 1.4.0-alpha.6 PCL2 live Vanilla OBS reconnect check
 
 - Test date: 2026-09-23
