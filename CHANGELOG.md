@@ -74,6 +74,7 @@ This file records user-facing changes for the README, visual-design, and release
 - The diagnostic panel now reports loader status, the current capture source, and the last audience FBO failure.
 - Added a manually gated stable-release workflow and a multi-artifact verifier; prerelease CI artifacts are retained for the eventual `1.4.0` asset bundle.
 - Vanilla and active Oculus shader-pack runtime verification remain beta acceptance gates; this alpha records build and source-level verification only.
+- The first post-alpha.3 runtime probes remain non-release evidence: Vanilla reached OBS/audience initialization but was stopped before graceful shutdown, while the fixed Oculus `1.20.1-1.8.0` development-client probe stopped in Oculus's `MixinAbstractTexture` mapping before the mod loaded. These results do not advance the beta acceptance gate.
 
 ## 1.3.0 — stable release
 

@@ -1,5 +1,64 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.3 Vanilla runtime probe - partial acceptance
+
+- Test date: 2026-09-22
+- Test type: Forge development-client runtime probe with isolated mock OBS WebSocket 5 endpoint
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium toolchain)
+- Mod ID: `bddmod`
+- Runtime command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args='--quickPlaySingleplayer "新的世界"' --init-script build\tmp\codex-direct-javac.init.gradle`, with a temporary mock OBS endpoint on `127.0.0.1:4456` and temporary `run/config/bddmod-client.toml` port override
+- Result: PARTIAL / NOT ACCEPTED - the client initialized the audience route and OBS routing, but the run was stopped with Ctrl+C before a normal menu-driven shutdown or screenshot evidence could be captured
+
+### Verified behaviors
+
+- The client identified the mock OBS endpoint and entered `RECORDING` state.
+- The audience target was created at `854x480` and resized to `854x486`.
+- The `BDD Audience Output` window opened and the mock OBS capture source was routed to `BDD Audience Output:GLFW30:java.exe`.
+- No player-render crash was observed before the run was stopped.
+
+### Not verified
+
+- No player/audience screenshot was captured.
+- OBS disconnect/reconnect cleanup and a normal client shutdown were not observed in this run.
+- No active Shader Pack was involved.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log` and `run/logs/debug.log`, including the OBS identification, recording transition, target creation/resizing, window creation, and routing entries around `08:15:54-08:16:15`.
+- Mock server transcript: `build/tmp/mock_obs_route_test.out`.
+
+## 1.4.0-alpha.3 Oculus 1.20.1-1.8.0 startup probe
+
+- Test date: 2026-09-22
+- Test type: Forge development-client compatibility probe with Oculus installed and Shader Pack disabled
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium toolchain)
+- Mod ID: `bddmod`
+- Oculus: `1.20.1-1.8.0`, local SHA-1 `984F774E71790DEAEC674C7587BD24E0711871B2`
+- Shader Pack resource: `ComplementaryReimagined_r5.1.1.zip`, local SHA-1 `8738D99D8A78B7E7EA71B5C15A3432BC04EBA715` (present but not selected)
+- Runtime command: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --args='--quickPlaySingleplayer "新的世界"' --init-script build\tmp\codex-direct-javac.init.gradle`, with a temporary mock OBS endpoint on `127.0.0.1:4456`
+- Result: FAIL / BLOCKED BEFORE MOD RUNTIME - Oculus terminated during mixin application because `MixinAbstractTexture` could not locate field `f_117950_` in `net.minecraft.client.renderer.texture.AbstractTexture`; the client never reached Forge world loading or BDD audience capture
+
+### Verified behaviors
+
+- The requested Oculus and fixed Shader Pack files were downloaded from Modrinth and their SHA-1 values matched the published file metadata.
+- The failure is isolated to the Oculus/Forge development-loader startup path; no BDD crash or capture failure was attributed to this run.
+
+### Not verified
+
+- Oculus without a Shader Pack did not reach the game.
+- Oculus with `ComplementaryReimagined_r5.1.1.zip` active was not attempted because the loader failed before the shader selection screen.
+- No player/audience framebuffer, OBS, audio, or resource-release behavior can be claimed from this probe.
+
+### Evidence and warnings
+
+- Runtime log: `run/logs/latest.log` and `build/tmp/oculus-no-shader-client.log`.
+- The blocking error is `org.spongepowered.asm.mixin.throwables.InvalidMixinException: @Shadow field f_117950_ was not located in the target class net.minecraft.client.renderer.texture.AbstractTexture`.
+- The Oculus files remain local test inputs under `run/mods/` and `run/shaderpacks/`; they are not project dependencies or release assets.
+
 ## 1.4.0-alpha.3 loader-neutral final framebuffer capture build verification
 
 - Test date: 2026-09-22
