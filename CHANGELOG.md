@@ -75,6 +75,7 @@ This file records user-facing changes for the README, visual-design, and release
 - Added a manually gated stable-release workflow and a multi-artifact verifier; prerelease CI artifacts are retained for the eventual `1.4.0` asset bundle.
 - Vanilla and active Oculus shader-pack runtime verification remain beta acceptance gates; this alpha records build and source-level verification only.
 - The first post-alpha.3 runtime probes remain non-release evidence: Vanilla reached OBS/audience initialization but was stopped before graceful shutdown, while the fixed Oculus `1.20.1-1.8.0` development-client probe stopped in Oculus's `MixinAbstractTexture` mapping before the mod loaded. These results do not advance the beta acceptance gate.
+- A real user-provided `ComplementaryReimagined_r5.9.3.zip` was added to an isolated compatibility probe; the available Forge userdev and standalone bootstrap paths stopped before Oculus shader initialization because of loader/mapping/module-path conflicts. No Shader Pack compatibility claim is made from this probe.
 
 ## 1.3.0 — stable release
 

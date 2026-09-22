@@ -1,5 +1,36 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.3 real ComplementaryReimagined r5.9.3 compatibility probe
+
+- Test date: 2026-09-22
+- Test type: Real Oculus/Shader Pack production-loader preparation and compatibility probe
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Eclipse Adoptium 17.0.15)
+- Mod ID: `bddmod`
+- Oculus input: `1.20.1-1.8.0`, SHA-1 `984F774E71790DEAEC674C7587BD24E0711871B2`
+- Shader Pack input: user-provided `ComplementaryReimagined_r5.9.3.zip`, SHA-1 `838139B54CDDB56B2E83CD260D8EFD960AC536D6`, SHA-256 `FED6C879E732CF7FC7BC6570EBB1DEF43235AA7E96F62859FBDBDBFA0B484B38`
+- Runtime preparation: copied the real Oculus JAR, the user-provided Shader Pack, and `bddmod-1.4.0-alpha.3-all.jar` into an isolated production-style Forge `1.20.1-47.4.10` instance; attempted ForgeGradle remapping and a standalone production bootstrap
+- Result: BLOCKED BEFORE SHADER TEST - the real r5.9.3 archive was accepted as a local input, but the available Forge development and standalone bootstrap paths did not reach Oculus shader initialization
+
+### Findings
+
+- Direct `run/mods` loading fails before Minecraft starts because Oculus's Mixin expects SRG field `f_117950_` while the Forge userdev class is exposed with official-mapping field `id`.
+- A temporary ForgeGradle `fg.deobf` probe removes that field-name error but then fails on Oculus's `MixinAbstractTexture` injection target `m_117963_()I`, which is absent from the userdev target in this mapping combination.
+- The isolated production bootstrap was then attempted with the actual Forge 47.4.10 installer, but its hand-built module path stopped on launcher-only module resolution conflicts (`jopt.simple`, Log4j, and duplicate ASM exports) before any Oculus or Shader Pack code ran.
+- These are loader/bootstrap compatibility blockers, not evidence that `ComplementaryReimagined_r5.9.3.zip` itself is invalid or incompatible with a correctly installed production Oculus profile.
+
+### Not verified
+
+- No claim is made for Oculus without shaders, Oculus with r5.9.3 active, audience framebuffer capture, OBS routing, or normal resource release from this probe.
+- No project source or version was changed; the test inputs remain isolated/local and the repository OBS port was restored to `4455`.
+
+### Evidence
+
+- User Shader Pack: `C:\Users\Administrator\Desktop\ComplementaryReimagined_r5.9.3.zip`
+- Isolated bootstrap logs: `build/tmp/oculus-remap-client.log`, `build/tmp/mc-prod-launch*.log`, and `build/tmp/mc-prod/logs/` when present.
+- Oculus Mixin failure signatures: `f_117950_` on direct loading and `m_117963_()I` after the temporary remap probe.
+
 ## 1.4.0-alpha.3 Vanilla runtime probe - partial acceptance
 
 - Test date: 2026-09-22
