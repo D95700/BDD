@@ -22,6 +22,7 @@ public final class AudienceRenderTargetManager {
     private static boolean failed;
     private static String lastFailure = "";
     private static String lastCaptureSource = "NOT CAPTURED";
+    private static String lastLoggedCapture = "";
     private static final AudienceFrameCapture FRAME_CAPTURE = new AudienceFrameCapture.CurrentFramebuffer();
 
     private AudienceRenderTargetManager() {
@@ -51,6 +52,7 @@ public final class AudienceRenderTargetManager {
                 ShaderCompatibility.reportCaptureFailure(capture.failure());
                 throw new IllegalStateException(capture.failure());
             }
+            logSuccessfulCapture(capture.source());
             target.bindWrite(true);
             renderer.accept(target);
             if (changed) {
@@ -138,8 +140,18 @@ public final class AudienceRenderTargetManager {
         failed = false;
         lastFailure = "";
         lastCaptureSource = "NOT CAPTURED";
+        lastLoggedCapture = "";
         if (hadState) {
             LOGGER.info("Audience render target released");
+        }
+    }
+
+    private static void logSuccessfulCapture(String source) {
+        ShaderCompatibility.RouteStatus routeStatus = ShaderCompatibility.routeStatus();
+        String captureIdentity = routeStatus + " " + source;
+        if (!captureIdentity.equals(lastLoggedCapture)) {
+            lastLoggedCapture = captureIdentity;
+            LOGGER.info("Audience final framebuffer capture succeeded for {} from {}", routeStatus, source);
         }
     }
 

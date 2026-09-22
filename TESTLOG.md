@@ -1,5 +1,32 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.7 capture-audit build verification
+
+- Test date: 2026-09-23
+- Test type: Java/resource/package verification and retained-release-asset audit
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17 toolchain (Gradle bootstrap used the checked-in direct-javac init script)
+- Mod ID: `bddmod`
+- Commands: `$env:GRADLE_USER_HOME='C:\\Users\\Administrator\\.gradle'; $env:JAVA_HOME='C:\\Program Files\\Java\\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\\bddmod-unavailable'; .\\gradlew.bat compileJava --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; equivalent `processResources` and two consecutive `build` runs without `clean`; `python scripts\\verify_build.py`; `python scripts\\verify_release_assets.py --root .` with retained alpha.1-alpha.7 `-all.jar` artifacts.
+- Result: PASS - source compiled, resources expanded, full packaging passed twice with an identical alpha.7 digest, and the multi-artifact release audit passed for all retained alpha packages.
+
+### Verified
+
+- `bddmod-1.4.0-alpha.7-all.jar` embeds version `1.4.0-alpha.7`, `WTFPL`, the required resources, and the bundled `nv-websocket-client-2.14` dependency.
+- Alpha.7 SHA-256: `71940BCEF62CEADA12ADA7BCB0217C089061ED4410EB1185762B1F703A5D13AD`; the second no-clean build produced the same digest.
+- The new event is emitted only after a successful final-framebuffer copy and forces shader-route detection on the observer capture path; existing capture-failure fallback behavior is unchanged.
+
+### Not covered
+
+- No alpha.7 client runtime has been launched yet. The currently running PCL2 client uses alpha.5 and must be closed before the retained instance JAR is replaced.
+- Oculus no-Shader-Pack and active-Shader-Pack routes remain beta gates until the alpha.7 event is observed in each scenario.
+
+### Evidence
+
+- Installable artifact: `build/libs/bddmod-1.4.0-alpha.7-all.jar`.
+- Release verifier retained-asset output was recorded during this run for alpha.1 through alpha.7.
+
 ## 1.4.0-alpha.6 PCL2 Oculus no-Shader-Pack startup probe
 
 - Test date: 2026-09-23

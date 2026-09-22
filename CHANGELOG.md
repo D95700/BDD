@@ -2,6 +2,18 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.4.0-alpha.7 - audience capture audit events
+
+### User-facing verification
+
+- A successful observer-frame capture now writes the detected shader-loader route and final framebuffer source to the client log once per observer-output lifecycle.
+- This makes Oculus with and without an active Shader Pack independently auditable during release verification without showing extra in-game UI or changing configuration.
+
+### Test-record status
+
+- Capture-failure fallback behavior remains unchanged; the new success event is emitted only after the framebuffer copy completes.
+- Runtime verification of the alpha.7 package remains pending while the isolated PCL2 Oculus profile is prepared for the rerun.
+
 ## 1.4.0-alpha.6 - reproducible installable packages
 
 ### User-facing verification
