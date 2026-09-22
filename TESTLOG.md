@@ -1,5 +1,27 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.3 user launcher Oculus acceptance
+
+- Test date: 2026-09-22
+- Test type: User-run production-launcher visual acceptance
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: launcher runtime version not recorded
+- Mod ID: `bddmod`
+- Oculus: `1.20.1-1.8.0` test input
+- Shader Pack: user-provided `ComplementaryReimagined_r5.9.3.zip`
+- Result: PASS (user report) - the user reported no observed issues and described the Oculus audience route as almost completely adapted to the active Shader Pack
+
+### Verified by user
+
+- The installable alpha.3 mod loaded through the user's production launcher with Oculus and the r5.9.3 Shader Pack.
+- The audience route remained usable under the active Shader Pack, with no reported black screen, frame mismatch, or visible capture-path failure.
+
+### Scope clarification
+
+- This acceptance applies to Forge + Oculus only. Iris is a Fabric/Quilt loader and is not claimed or tested as native Forge support.
+- The user did not provide a command, Java runtime string, screenshot path, or OBS transcript, so those evidence fields remain unavailable.
+
 ## 1.4.0-alpha.3 real ComplementaryReimagined r5.9.3 compatibility probe
 
 - Test date: 2026-09-22

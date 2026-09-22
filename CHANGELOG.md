@@ -2,6 +2,17 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.4.0-alpha.3 — user Oculus acceptance clarification
+
+### User-facing verification
+
+- The maintainer verified the installable `1.4.0-alpha.3` build in a production launcher with Oculus and `ComplementaryReimagined_r5.9.3.zip`; the audience route was reported as working without observed shader-pack issues.
+- Forge compatibility claims for this release are limited to Oculus. Iris is a Fabric/Quilt shader loader and is not part of the Forge runtime acceptance matrix.
+
+### Test-record status
+
+- This is a user-reported launcher acceptance result; the previous local userdev/bootstrap failures remain historical environment blockers and are not treated as failures of the Shader Pack itself.
+
 ## Unreleased — post-release README synchronization policy
 
 ### Project workflow changes
