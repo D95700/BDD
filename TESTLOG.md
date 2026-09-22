@@ -1,5 +1,38 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.6 PCL2 live Vanilla OBS reconnect check
+
+- Test date: 2026-09-23
+- Test type: Production PCL2 client runtime lifecycle check with a local OBS WebSocket 5 protocol mock
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15
+- Mod ID: `bddmod`
+- Client artifact: `bddmod-1.4.0-alpha.5-all.jar`; alpha.6 is packaging-only, so no audience-rendering code differs from this running build.
+- Commands: PCL2 profile `1.20.1-Forge_47.4.10-BDD-Beta` was already running in a single-player world; `python build\\tmp\\mock_obs_route_test.py` was started twice on `127.0.0.1:4455` and each temporary server process was then stopped to exercise disconnect and reconnect handling.
+- Result: PASS for the Vanilla audience/OBS lifecycle. The client remained running in the existing world after both disconnects.
+
+### Verified
+
+- Forge loaded the standalone alpha.5 artifact, entered a single-player world, and did not load Oculus or a Shader Pack.
+- Each local OBS connection was identified, reported `RECORDING`, initialized the `854x480` audience render target and `BDD Audience Output` window, and routed the mock Game Capture input to that window.
+- Each mock disconnect stopped synchronized heartbeat audio and visual pulse, then released the audience window and render target on the render thread.
+- After the first disconnect, the same live client reconnected without a world restart and recreated the target/window and routing path.
+- No BDD exception or `Audience framebuffer capture failed` entry occurred in the observed lifecycle window.
+
+### Not covered
+
+- This is a Vanilla-only runtime result for alpha.5; it is behavioral evidence for the unchanged alpha.6 renderer, not a live run of the alpha.6 or future beta artifact.
+- Oculus `1.20.1-1.8.0` without a Shader Pack has not yet been launched in the PCL2 profile, so the strict beta matrix is not complete.
+- The maintainer-reported Oculus run with `ComplementaryReimagined_r5.9.3.zip` remains recorded separately; no new independent active-Shader-Pack log or screenshot was captured in this session.
+- Player-versus-audience screenshots could not be captured because the desktop graphical-control channel was unavailable.
+
+### Evidence
+
+- Runtime log: `E:\\PCL2\\RE\\幻想物语RE正式版客户端\\.minecraft\\versions\\1.20.1-Forge_47.4.10-BDD-Beta\\logs\\debug.log` (connection/reconnect sequence around `02:43:02` through `02:45:17`).
+- Mock protocol transcript: `build/tmp/mock_obs_route_test.out`.
+- PCL2 test inputs retained but not loaded: `oculus-mc1.20.1-1.8.0.jar`, `embeddium-0.3.31+mc1.20.1.jar`, and `ComplementaryReimagined_r5.9.3.zip`.
+
 ## 1.4.0-alpha.6 reproducible package check
 
 - Test date: 2026-09-23
