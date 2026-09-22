@@ -1,5 +1,32 @@
 # BDD Mod Test Log
 
+## 1.4.0-beta.1 promotion verification
+
+- Test date: 2026-09-23
+- Test type: Beta promotion package verification and documented acceptance waiver
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17 toolchain
+- Mod ID: `bddmod`
+- Commands: `$env:GRADLE_USER_HOME='C:\\Users\\Administrator\\.gradle'; $env:JAVA_HOME='C:\\Program Files\\Java\\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\\bddmod-unavailable'; .\\gradlew.bat compileJava --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; equivalent `processResources` and full `build` without `clean`; `python scripts\\verify_build.py`; retained-asset verifier for alpha.1-alpha.7 and beta.1.
+- Result: PASS for beta packaging and promotion bookkeeping. The strict alpha.7 runtime rerun was intentionally waived by the maintainer; this is not a claim that the waived run occurred.
+
+### Verified
+
+- The beta artifact embeds `1.4.0-beta.1`, `WTFPL`, required resources, and bundled `nv-websocket-client-2.14`.
+- Existing evidence remains valid: local Oculus no-Shader-Pack audience routing and disconnect cleanup passed; the maintainer reported the active `ComplementaryReimagined_r5.9.3.zip` route working in the production launcher.
+- The release workflow's retained prerelease list includes alpha.7 for later stable asset publication.
+
+### Not covered
+
+- The alpha.7-specific loader-status and successful-capture log event was not rerun in the PCL2 client before beta promotion.
+- No native Forge Iris claim is made, and screenshot evidence is not added by this promotion.
+
+### Evidence
+
+- Installable artifact: `build/libs/bddmod-1.4.0-beta.1-all.jar`.
+- Prior runtime records: the alpha.6 Oculus no-Shader-Pack audience lifecycle entry and the alpha.3 user-launcher Oculus acceptance entry below.
+
 ## 1.4.0-alpha.7 capture-audit build verification
 
 - Test date: 2026-09-23

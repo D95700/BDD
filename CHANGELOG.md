@@ -2,6 +2,18 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.4.0-beta.1 - Oculus audience route beta
+
+### User-facing verification
+
+- The Oculus audience route is promoted to beta for Forge 1.20.1 based on the completed no-Shader-Pack lifecycle probe and the maintainer's active `ComplementaryReimagined_r5.9.3.zip` acceptance run.
+- Audience capture remains loader-neutral: the player window continues to render normally while the observer window receives the copied final framebuffer.
+
+### Test-record status
+
+- This beta intentionally waives the additional alpha.7 strict-log rerun at the maintainer's direction; the existing runtime evidence and its limits remain recorded in `TESTLOG.md`.
+- Forge support claims remain limited to Oculus. Iris is not claimed as native Forge support.
+
 ## 1.4.0-alpha.7 - audience capture audit events
 
 ### User-facing verification
