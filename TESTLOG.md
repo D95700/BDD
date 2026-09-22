@@ -30,6 +30,33 @@
 - Runtime log: `E:\\PCL2\\RE\\幻想物语RE正式版客户端\\.minecraft\\versions\\1.20.1-Forge_47.4.10-BDD-Beta\\logs\\debug.log` (Oculus startup near `03:11:26`, OBS connection at `03:12:37`, and heartbeat/pulse stop at `03:18:08`).
 - Mock transcript: `build/tmp/mock_obs_route_test.out`.
 
+## 1.4.0-alpha.6 PCL2 Oculus no-Shader-Pack world-entry retry
+
+- Test date: 2026-09-23
+- Test type: Production PCL2 single-player world-entry retry after the no-Shader-Pack startup probe
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15
+- Mod ID: `bddmod`
+- Command: PCL2 profile `1.20.1-Forge_47.4.10-BDD-Beta` with Oculus `1.20.1-1.8.0`, Embeddium `0.3.31+mc1.20.1`, an empty `shaderpacks/` directory, and the retained alpha.5 installable BDD artifact. The local OBS mock was not started for this retry.
+- Result: FAIL - Minecraft crashed at `2026-09-23 03:20:13` while initializing the integrated server, before an in-world HUD render or BDD audience capture could occur.
+
+### Verified
+
+- The crash report identifies `java.lang.IllegalStateException: failed to create a child event loop`, caused by Netty failing to establish its loopback selector connection (`java.net.SocketException: Invalid argument: connect`).
+- The report lists `Suspected Mods: NONE`; BDD and Oculus do not occur in the failing stack. This is environment/runtime evidence, not an Oculus or BDD capture regression.
+- The current shell, user environment, and machine environment contain no `JAVA_TOOL_OPTIONS` or `jdk.net.unixdomain.tmpdir` override. The exited Java process's inherited environment cannot be reconstructed.
+
+### Not covered
+
+- The client did not remain alive in-world, so `Audience GUI renderer active`, `OCULUS_NO_SHADER_PACK`, observer-window creation, capture routing, and disconnect resource release remain unverified.
+- This failure does not advance the beta acceptance gate and must be resolved or bypassed with a successful isolated world-entry run before rerunning the OBS route probe.
+
+### Evidence
+
+- Crash report: `E:\\PCL2\\RE\\幻想物语RE正式版客户端\\.minecraft\\versions\\1.20.1-Forge_47.4.10-BDD-Beta\\crash-reports\\crash-2026-09-23_03.20.13-client.txt`.
+- Runtime log: `E:\\PCL2\\RE\\幻想物语RE正式版客户端\\.minecraft\\versions\\1.20.1-Forge_47.4.10-BDD-Beta\\logs\\latest.log`.
+
 ## 1.4.0-alpha.6 PCL2 live Vanilla OBS reconnect check
 
 - Test date: 2026-09-23
