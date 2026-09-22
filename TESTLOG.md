@@ -1,5 +1,32 @@
 # BDD Mod Test Log
 
+## 1.4.0-rc.1 release workflow dry-run
+
+- Test date: 2026-09-23
+- Test type: Release-candidate build, cross-version asset validation, and workflow dry-run preparation
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17 toolchain
+- Mod ID: `bddmod`
+- Commands: `gradlew.bat compileJava`; `gradlew.bat processResources`; `gradlew.bat build` without `clean`; `python scripts\verify_build.py`; `python scripts\verify_release_assets.py --root . --manifest build\release-assets-rc.1.tsv` with alpha.1-alpha.7, beta.1, and rc.1 mappings; `git diff --check`.
+- Result: PASS for the rc.1 package and local release dry-run.
+
+### Verified
+
+- The rc.1 artifact embeds `1.4.0-rc.1`, `WTFPL`, the required resources, and bundled `nv-websocket-client-2.14`.
+- The retained asset verifier accepted all nine installable artifacts from alpha.1 through rc.1 and emitted a deterministic version, filename, and SHA-256 manifest.
+- The manually dispatched release workflow remains approval-gated, requires explicit artifact run IDs, and does not modify README.
+
+### Not covered
+
+- No GitHub Release, tag, or README synchronization was performed in this prerelease step.
+- Runtime behavior is inherited from the documented beta acceptance evidence; this package-only step does not claim a new client session.
+
+### Evidence
+
+- Installable artifact: `build/libs/bddmod-1.4.0-rc.1-all.jar`.
+- Release manifest: `build/release-assets-rc.1.tsv`.
+
 ## 1.4.0-beta.1 promotion verification
 
 - Test date: 2026-09-23

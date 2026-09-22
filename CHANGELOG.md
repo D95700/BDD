@@ -2,6 +2,18 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.4.0-rc.1 - release workflow and asset dry-run
+
+### User-facing verification
+
+- The release candidate packages the complete 1.4.0 prerelease line without changing the existing OBS configuration or README.
+- The manually gated release workflow now has a verified retained-asset set through `1.4.0-rc.1`, ready for the stable release dry-run.
+
+### Test-record status
+
+- Local release dry-run passed for alpha.1 through alpha.7, beta.1, and rc.1 installable `-all.jar` files.
+- The workflow remains approval-gated and cannot modify README; stable publication is still a separate step after final acceptance.
+
 ## 1.4.0-beta.1 - Oculus audience route beta
 
 ### User-facing verification
