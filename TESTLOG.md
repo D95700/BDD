@@ -1,5 +1,32 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.3 Vanilla development-client startup recheck
+
+- Test date: 2026-09-22
+- Test type: Forge development-client startup and safe-fallback recheck
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: runtime reported by ModLauncher as 17.0.15 (Eclipse Adoptium); Gradle invocation used the repository direct-javac init script
+- Mod ID: `bddmod`
+- Command: `$env:JAVA_HOME='C:\Program Files\Java\jdk-21'; $env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'; .\gradlew.bat runClient --no-daemon --init-script build\tmp\codex-direct-javac.init.gradle`
+- Result: PASS for client startup; INCOMPLETE for the full runtime matrix
+
+### Verified
+
+- Forge loaded the alpha.3 development client and `bddmod` without a mod-loading crash.
+- OpenGL 4.6 and the Minecraft sound engine initialized successfully.
+- With OBS unavailable at `127.0.0.1:4455`, the monitor repeatedly entered its connection-failure fallback without stopping client startup.
+
+### Not covered
+
+- No menu/world interaction, audience-window screenshot, OBS recording transition, reconnect, or graceful in-game shutdown was completed in this run because no reliable UI-control channel was available.
+- This result does not advance the beta acceptance gate beyond startup evidence.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log`
+- Extended debug log: `run/logs/debug.log`
+
 ## 1.4.0-alpha.3 user launcher Oculus acceptance
 
 - Test date: 2026-09-22
