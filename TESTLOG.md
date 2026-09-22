@@ -27,6 +27,35 @@
 - Installable artifact: `build/libs/bddmod-1.4.0-alpha.7-all.jar`.
 - Release verifier retained-asset output was recorded during this run for alpha.1 through alpha.7.
 
+## 1.4.0-alpha.6 PCL2 Oculus no-Shader-Pack audience lifecycle
+
+- Test date: 2026-09-23
+- Test type: Production PCL2 single-player in-world audience capture, OBS routing, and disconnect cleanup
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15
+- Mod ID: `bddmod`
+- Client artifact: `bddmod-1.4.0-alpha.5-all.jar`; alpha.6 changes package reproducibility only, so the renderer under test is identical to alpha.6.
+- Commands: PCL2 profile `1.20.1-Forge_47.4.10-BDD-Beta` with Oculus `1.20.1-1.8.0`, Embeddium `0.3.31+mc1.20.1`, empty `shaderpacks/`, and `python build\\tmp\\mock_obs_route_test.py` on `127.0.0.1:4455`. The mock process was then terminated while Minecraft remained in the world.
+- Result: PASS for the Oculus no-Shader-Pack audience/OBS lifecycle. The client stayed alive after the mock disconnect and released its audience resources.
+
+### Verified
+
+- Oculus logged `Shaders are disabled because no valid shaderpack is selected`, and the integrated single-player world completed local player login before OBS connected.
+- BDD created an `854x480` audience render target and `BDD Audience Output` window, then routed the mock `Game Capture` source to `BDD Audience Output:GLFW30:java.exe`.
+- The observed target and window require `AudienceFrameCapture` to have returned success; there was no `Audience framebuffer capture failed` or render-target failure entry during the test.
+- Disconnecting the mock stopped heartbeat audio and visual pulse, released the audience window and FBO on the render thread, and left the Minecraft Java process alive.
+
+### Not covered
+
+- Alpha.5 did not emit the loader-status or successful-capture-source event required for strict release audit. Alpha.7 adds that event and must be rerun before this scenario can satisfy the beta gate.
+- No active Shader Pack was selected. The active `ComplementaryReimagined_r5.9.3.zip` scenario and paired player/audience screenshot evidence remain open.
+
+### Evidence
+
+- Client runtime log: `E:\\PCL2\\RE\\幻想物语RE正式版客户端\\.minecraft\\versions\\1.20.1-Forge_47.4.10-BDD-Beta\\logs\\latest.log` (world login at `03:34:31`, route setup at `03:35:07`, cleanup at `03:36:00`).
+- Mock transcript: `build/tmp/mock_obs_route_test.out`.
+
 ## 1.4.0-alpha.6 PCL2 Oculus no-Shader-Pack startup probe
 
 - Test date: 2026-09-23
