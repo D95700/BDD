@@ -1,5 +1,36 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.6 reproducible package check
+
+- Test date: 2026-09-23
+- Test type: Deterministic installable-package build verification
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17 toolchain
+- Mod ID: `bddmod`
+- Commands: `$env:GRADLE_USER_HOME='C:\\Users\\Administrator\\.gradle'; $env:JAVA_HOME='C:\\Program Files\\Java\\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\\bddmod-unavailable'; .\\gradlew.bat build --rerun-tasks --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle` (three consecutive executions, no `clean`); `.\\gradlew.bat compileJava --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; `.\\gradlew.bat processResources --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; `python scripts\\verify_build.py`; `python scripts\\verify_release_assets.py --root . --manifest build\\tmp\\alpha6-release-assets-{1,2}.tsv` with alpha.1-alpha.6 mappings.
+- Result: PASS - consecutive forced builds produced the identical alpha.6 `-all.jar` SHA-256; compile, resource processing, full build, and both release-asset manifests passed.
+
+### Intended coverage
+
+- Ensure archive entry order and timestamps are reproducible and no build timestamp enters the JAR manifest.
+- Verify the stable-release asset manifest remains deterministic after adding alpha.6.
+
+### Verified
+
+- Full `build --rerun-tasks`: PASS on each consecutive run without deleting retained assets. The final two checksums matched: `F2A0890DC85B1637AA05EF950E2A9E7810672E8B4FBC52C8114136713FEEB23C`.
+- `compileJava`, `processResources`, full `build`, and `verify_build.py` all passed. The package embeds version `1.4.0-alpha.6` and license `WTFPL`.
+- The six-asset verifier passed for alpha.1 through alpha.6. Two independent TSV manifests were byte-identical, SHA-256 `68C661F78C98DD53E489293983F852EA8DD6DA40EB6AC0DD9728F5CB7E159E8D`.
+
+### Evidence
+
+- Installable artifact: `build/libs/bddmod-1.4.0-alpha.6-all.jar`.
+- Release manifests: `build/tmp/alpha6-release-assets-1.tsv` and `build/tmp/alpha6-release-assets-2.tsv`.
+
+### Not covered
+
+- This packaging-only micro-step does not replace the Vanilla or Oculus runtime acceptance tests required before beta promotion.
+
 ## 1.4.0-alpha.5 release asset audit hardening
 
 - Test date: 2026-09-22

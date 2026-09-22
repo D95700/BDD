@@ -2,6 +2,17 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.4.0-alpha.6 - reproducible installable packages
+
+### User-facing verification
+
+- Rebuilding an unchanged installable package now produces the same SHA-256, so the digest recorded for a retained prerelease remains reliable through the stable-release asset audit.
+
+### Test-record status
+
+- Package manifests no longer include a build-time timestamp, and Gradle uses deterministic archive ordering and entry timestamps.
+- No gameplay, configuration, README, OBS, or Oculus compatibility behavior changed in this micro-step.
+
 ## 1.4.0-alpha.5 - release asset audit hardening
 
 ### User-facing verification

@@ -11,7 +11,7 @@ on:
       prerelease_versions:
         description: Comma-separated prerelease versions to retain in the release
         required: true
-        default: 1.4.0-alpha.1,1.4.0-alpha.2,1.4.0-alpha.3,1.4.0-alpha.4,1.4.0-alpha.5,1.4.0-beta.1,1.4.0-rc.1
+        default: 1.4.0-alpha.1,1.4.0-alpha.2,1.4.0-alpha.3,1.4.0-alpha.4,1.4.0-alpha.5,1.4.0-alpha.6,1.4.0-beta.1,1.4.0-rc.1
         type: string
       artifact_run_ids:
         description: Comma-separated successful CI run IDs containing those prerelease artifacts
