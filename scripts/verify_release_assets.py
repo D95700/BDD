@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 import sys
 import zipfile
@@ -50,6 +51,28 @@ def read_metadata(archive: zipfile.ZipFile) -> dict[str, str]:
     return metadata
 
 
+def verify_bundled_runtime(archive: zipfile.ZipFile) -> None:
+    """Reject an otherwise plausible thin JAR with missing or empty JarJar data."""
+    try:
+        metadata_text = archive.read("META-INF/jarjar/metadata.json").decode("utf-8")
+        metadata = json.loads(metadata_text)
+    except (KeyError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise VerificationError("META-INF/jarjar/metadata.json is not valid JSON") from exc
+
+    jars = metadata.get("jars") if isinstance(metadata, dict) else None
+    if not isinstance(jars, list):
+        raise VerificationError("JarJar metadata does not contain a jars list")
+    runtime_path = "META-INF/jarjar/nv-websocket-client-2.14.jar"
+    if not any(isinstance(item, dict) and item.get("path") == runtime_path for item in jars):
+        raise VerificationError(f"JarJar metadata does not reference {runtime_path}")
+    try:
+        runtime_entry = archive.getinfo(runtime_path)
+    except KeyError as exc:
+        raise VerificationError(f"JAR is missing {runtime_path}") from exc
+    if runtime_entry.file_size <= 0:
+        raise VerificationError(f"bundled runtime is empty: {runtime_path}")
+
+
 def verify_artifact(path: Path, expected_version: str, mod_id: str, license_name: str) -> str:
     if not SEMVER.fullmatch(expected_version):
         raise VerificationError(f"invalid expected SemVer: {expected_version!r}")
@@ -74,6 +97,7 @@ def verify_artifact(path: Path, expected_version: str, mod_id: str, license_name
             missing = sorted(required - names)
             if missing:
                 raise VerificationError(f"{path.name} is missing: {', '.join(missing)}")
+            verify_bundled_runtime(archive)
             if metadata.get("version") != expected_version:
                 raise VerificationError(
                     f"{path.name} embeds version {metadata.get('version')!r}, expected {expected_version!r}"
@@ -98,6 +122,11 @@ def main() -> int:
         metavar="VERSION=PATH",
         help="artifact mapping; repeat once for every prerelease and stable JAR",
     )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        help="optional deterministic TSV output containing version, filename, and SHA-256",
+    )
     args = parser.parse_args()
     root = args.root.resolve()
     properties = read_properties(root / "gradle.properties")
@@ -109,6 +138,7 @@ def main() -> int:
 
     seen_versions: set[str] = set()
     try:
+        manifest_rows: list[tuple[str, str, str]] = []
         for mapping in args.artifact:
             if "=" not in mapping:
                 raise VerificationError(f"artifact mapping must use VERSION=PATH: {mapping!r}")
@@ -120,6 +150,7 @@ def main() -> int:
             if not path.is_absolute():
                 path = root / path
             digest = verify_artifact(path.resolve(), version, mod_id, license_name)
+            manifest_rows.append((version, path.name, digest))
             print(f"version={version} artifact={path.resolve().relative_to(root).as_posix()} sha256={digest}")
     except (OSError, VerificationError) as exc:
         print(f"verify_release_assets: FAIL: {exc}", file=sys.stderr)
@@ -128,6 +159,15 @@ def main() -> int:
     if not seen_versions:
         print("verify_release_assets: FAIL: no artifacts supplied", file=sys.stderr)
         return 1
+    if args.manifest:
+        manifest = args.manifest if args.manifest.is_absolute() else root / args.manifest
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text(
+            "version\tfilename\tsha256\n"
+            + "".join(f"{version}\t{filename}\t{digest}\n" for version, filename, digest in manifest_rows),
+            encoding="utf-8",
+        )
+        print(f"manifest={manifest.resolve().relative_to(root).as_posix()}")
     print(f"verify_release_assets: PASS ({len(seen_versions)} artifacts)")
     return 0
 

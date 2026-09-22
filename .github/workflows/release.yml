@@ -11,7 +11,7 @@ on:
       prerelease_versions:
         description: Comma-separated prerelease versions to retain in the release
         required: true
-        default: 1.4.0-alpha.1,1.4.0-alpha.2,1.4.0-alpha.3,1.4.0-alpha.4,1.4.0-beta.1,1.4.0-rc.1
+        default: 1.4.0-alpha.1,1.4.0-alpha.2,1.4.0-alpha.3,1.4.0-alpha.4,1.4.0-alpha.5,1.4.0-beta.1,1.4.0-rc.1
         type: string
       artifact_run_ids:
         description: Comma-separated successful CI run IDs containing those prerelease artifacts
@@ -97,13 +97,13 @@ jobs:
             cp "$path" "$asset"
             args+=(--artifact "${version}=${asset}")
           done
-          python3 scripts/verify_release_assets.py --root . "${args[@]}" | tee release-assets/release-assets-report.txt
+          python3 scripts/verify_release_assets.py --root . --manifest release-assets/release-assets-sha256.tsv "${args[@]}" | tee release-assets/release-assets-report.txt
           {
             echo "# BDD Local Client ${RELEASE_VERSION}"
             echo
             echo "Stable release assets and SHA-256 digests:"
             echo
-            sed 's/^/- /' release-assets/release-assets-report.txt
+            sed 's/^/- /' release-assets/release-assets-sha256.tsv
             echo
             echo "Minecraft 1.20.1, Forge 47.4.10, Java 17."
           } > release-notes.md
@@ -116,6 +116,7 @@ jobs:
           path: |
             release-assets/*-all.jar
             release-assets/release-assets-report.txt
+            release-assets/release-assets-sha256.tsv
             gradle-release.log
             release-notes.md
 

@@ -1,5 +1,69 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.5 release asset audit hardening
+
+- Test date: 2026-09-22
+- Test type: Release verifier and workflow asset-manifest check
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17 toolchain
+- Mod ID: `bddmod`
+- Commands: `./gradlew.bat compileJava --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; `./gradlew.bat processResources --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; `./gradlew.bat build --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; `python scripts\\verify_build.py`; `python scripts\\verify_release_assets.py --root . --manifest build\\tmp\\alpha-release-assets.tsv` with alpha.1-alpha.5 mappings
+- Result: PASS - alpha.5 builds, all five retained assets pass the strengthened verifier, the thin-JAR negative fixture exits `1`, and two generated manifests are byte-identical
+
+### Intended coverage
+
+- Validate JarJar metadata and reject missing, empty, or unreferenced `nv-websocket-client-2.14` runtime entries.
+- Emit a deterministic TSV manifest containing each asset version, filename, and SHA-256 digest for release-note reuse.
+- Keep the release workflow manually gated and prevent README changes during packaging.
+
+### Verified
+
+- `verify_build.py`: PASS; alpha.5 embedded version `1.4.0-alpha.5`, license `WTFPL`, SHA-256 `C74940E9D30392FFF72A84CA96537CD73B36C007E815293F3705B84E7F0EC81B`.
+- Multi-asset verifier: PASS for alpha.1, alpha.2, alpha.3, alpha.4, and alpha.5; the deterministic manifest contains each filename and digest.
+- Thin fixture: the non-`-all.jar` alpha.5 package copied to an `-all.jar` filename was rejected with exit code `1` because JarJar metadata and the bundled runtime were absent.
+- Manifest reproducibility: two independent verifier runs produced the same SHA-256 for the TSV manifest.
+
+### Evidence
+
+- Artifact: `build/libs/bddmod-1.4.0-alpha.5-all.jar`
+- Manifest: `build/tmp/alpha-release-assets.tsv`
+- Negative fixture: `build/tmp/bddmod-1.4.0-alpha.5-all.jar`
+
+### Known correction
+
+- The retained alpha.3 artifact hash below is corrected to the digest produced by the current file: `7A48A4FC4703760A63D92A7E36510456FD927E5A93D29E510923D0C1E1660756`.
+- A 2026-09-23 alpha.5 rebuild changed the archive digest from the retained `C74940E9D30392FFF72A84CA96537CD73B36C007E815293F3705B84E7F0EC81B` to `A60372869CE9B111BDCC37F79048846175A7F808718515B11623D43A764E2377` while entry contents stayed identical. The retained PCL-installed alpha.5 asset remains the original `C749...` file; alpha.6 addresses this packaging reproducibility defect before beta promotion.
+
+## 1.4.0-alpha.5 PCL2 Vanilla runtime baseline
+
+- Test date: 2026-09-23
+- Test type: Production PCL2 client runtime baseline
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15
+- Mod ID: `bddmod`
+- Gradle command: N/A - launched via `E:\\PCL2\\Plain Craft Launcher 2.exe`, profile `1.20.1-Forge_47.4.10-BDD-Beta`, using `mods/bddmod-1.4.0-alpha.5-all.jar`.
+- Result: PASS - Vanilla client and the audience/OBS lifecycle completed without a BDD error or exception.
+
+### Verified
+
+- The isolated profile contained only the alpha.5 BDD package; Oculus was not loaded, so this is a Vanilla-only acceptance result.
+- A single-player world loaded successfully and paused/saved normally.
+- OBS WebSocket was identified on `127.0.0.1:4455`; the audience target and hidden audience window initialized, and OBS switched the configured capture input to the audience selector.
+- Recording start and stop were observed. Recording veins, synchronized heartbeat audio, and visual pulse all started and stopped with the OBS state.
+- The audience window and render target later logged explicit resource release.
+
+### Not covered
+
+- Oculus with no Shader Pack and Oculus with an active Shader Pack were not loaded in this instance.
+- No player-versus-audience screenshot was captured because the Windows graphical-control service was unavailable.
+- The final release reason for the observed resource cleanup was not asserted from the log alone.
+
+### Evidence
+
+- Runtime log: `E:\\PCL2\\RE\\幻想物语RE正式版客户端\\.minecraft\\versions\\1.20.1-Forge_47.4.10-BDD-Beta\\logs\\latest.log`.
+
 ## 1.4.0-alpha.4 compile and shutdown-resource implementation check
 
 - Test date: 2026-09-22
@@ -223,7 +287,7 @@
 ### Evidence
 
 - Source: `src/main/java/com/example/bddmod/client/AudienceFrameCapture.java`, `AudienceRenderTargetManager.java`, and `ShaderCompatibility.java`.
-- The alpha.3 installable artifact is `build/libs/bddmod-1.4.0-alpha.3-all.jar`, SHA-256 `FDCE5DB232768BFA2E59E8DE49A5EB9F20D5F8C28D8A7BDF7314DA430CC8CA87`.
+- The alpha.3 installable artifact is `build/libs/bddmod-1.4.0-alpha.3-all.jar`, SHA-256 `7A48A4FC4703760A63D92A7E36510456FD927E5A93D29E510923D0C1E1660756`.
 - The retained alpha.1, alpha.2, and alpha.3 assets report matching embedded versions, WTFPL metadata, bundled WebSocket dependency, required resources, and SHA-256 values.
 - Negative multi-asset checks passed: missing-artifact and filename/version-mismatch fixtures both returned exit code `1`.
 - Workflow YAML parsing and Python syntax checks passed for `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `scripts/verify_build.py`, and `scripts/verify_release_assets.py`.

@@ -2,6 +2,18 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.4.0-alpha.5 - release asset audit hardening
+
+### User-facing verification
+
+- Stable-release packaging now rejects thin or malformed installable JARs before they can be uploaded.
+- Release notes can include a deterministic version, filename, and SHA-256 manifest for every retained prerelease and the stable artifact.
+
+### Test-record status
+
+- The verifier now validates JarJar metadata, the embedded `nv-websocket-client-2.14` path, and the bundled runtime size in addition to the existing version, license, and resource checks.
+- No gameplay, configuration, README, or Oculus compatibility behavior changed in this micro-step.
+
 ## 1.4.0-alpha.4 - client shutdown cleanup and capture diagnostics
 
 ### User-facing verification
