@@ -2,7 +2,6 @@ package com.example.bddmod.client;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
@@ -21,6 +20,9 @@ public final class AudienceRenderTargetManager {
     private static int targetWidth;
     private static int targetHeight;
     private static boolean failed;
+    private static String lastFailure = "";
+    private static String lastCaptureSource = "NOT CAPTURED";
+    private static final AudienceFrameCapture FRAME_CAPTURE = new AudienceFrameCapture.CurrentFramebuffer();
 
     private AudienceRenderTargetManager() {
     }
@@ -43,10 +45,11 @@ public final class AudienceRenderTargetManager {
 
         try {
             boolean changed = ensureTarget(width, height);
-            target.bindWrite(true);
-            target.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
-            target.clear(Minecraft.ON_OSX);
-            copyMainFrameToTarget(mainTarget);
+            AudienceFrameCapture.CaptureResult capture = FRAME_CAPTURE.capture(target);
+            lastCaptureSource = capture.source();
+            if (!capture.success()) {
+                throw new IllegalStateException(capture.failure());
+            }
             target.bindWrite(true);
             renderer.accept(target);
             if (changed) {
@@ -72,12 +75,16 @@ public final class AudienceRenderTargetManager {
 
     public static String describeState() {
         if (failed) {
-            return "FAILED";
+            return "FAILED: " + lastFailure;
         }
         if (target == null) {
             return "NOT INITIALIZED";
         }
         return "READY " + targetWidth + "x" + targetHeight;
+    }
+
+    public static String describeCapture() {
+        return lastCaptureSource;
     }
 
     public static void release() {
@@ -108,23 +115,10 @@ public final class AudienceRenderTargetManager {
         return false;
     }
 
-    /**
-     * Seed the audience surface with the frame Minecraft has already rendered. The later
-     * audience-only pass can replace or augment this copy without touching the player's target.
-     */
-    private static void copyMainFrameToTarget(RenderTarget mainTarget) {
-        GlStateManager._glBindFramebuffer(36008, mainTarget.frameBufferId);
-        GlStateManager._glBindFramebuffer(36009, target.frameBufferId);
-        GlStateManager._glBlitFrameBuffer(
-                0, 0, mainTarget.width, mainTarget.height,
-                0, 0, target.width, target.height,
-                16384, 9728);
-        GlStateManager._glBindFramebuffer(36160, mainTarget.frameBufferId);
-    }
-
     private static void disableAfterFailure(Throwable throwable) {
         failed = true;
         destroyTarget();
+        lastFailure = throwable.getClass().getSimpleName() + ": " + String.valueOf(throwable.getMessage());
         LOGGER.warn("Audience render target disabled after a rendering failure", throwable);
     }
 
@@ -141,6 +135,8 @@ public final class AudienceRenderTargetManager {
         boolean hadState = target != null || failed;
         destroyTarget();
         failed = false;
+        lastFailure = "";
+        lastCaptureSource = "NOT CAPTURED";
         if (hadState) {
             LOGGER.info("Audience render target released");
         }

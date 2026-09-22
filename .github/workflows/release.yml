@@ -1,0 +1,135 @@
+name: Publish stable release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: Stable SemVer already present in gradle.properties
+        required: true
+        default: 1.4.0
+        type: string
+      prerelease_versions:
+        description: Comma-separated prerelease versions to retain in the release
+        required: true
+        default: 1.4.0-alpha.1,1.4.0-alpha.2,1.4.0-alpha.3,1.4.0-beta.1,1.4.0-rc.1
+        type: string
+      artifact_run_ids:
+        description: Comma-separated successful CI run IDs containing those prerelease artifacts
+        required: true
+        type: string
+      publish_release:
+        description: Create and publish the GitHub Release after the protected-environment approval
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    name: Build and publish stable release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: release
+
+    steps:
+      - name: Check out stable commit
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify requested stable version
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          set -euo pipefail
+          actual="$(sed -n 's/^mod_version=//p' gradle.properties)"
+          test "$actual" = "$RELEASE_VERSION"
+          test "$RELEASE_VERSION" = "1.4.0"
+
+      - name: Build stable installable JAR
+        shell: bash
+        run: bash ./gradlew build --no-daemon --stacktrace 2>&1 | tee gradle-release.log
+
+      - name: Verify stable installable JAR
+        run: python3 scripts/verify_build.py
+
+      - name: Download retained prerelease artifacts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_RUN_IDS: ${{ inputs.artifact_run_ids }}
+        run: |
+          set -euo pipefail
+          rm -rf release-assets
+          mkdir -p release-assets
+          IFS=',' read -ra run_ids <<< "$ARTIFACT_RUN_IDS"
+          test "${#run_ids[@]}" -gt 0
+          for run_id in "${run_ids[@]}"; do
+            test "$run_id" =~ ^[0-9]+$
+            gh run download "$run_id" --dir "release-assets/run-$run_id"
+          done
+
+      - name: Verify all release assets and write notes
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          PRERELEASE_VERSIONS: ${{ inputs.prerelease_versions }}
+        run: |
+          set -euo pipefail
+          cp "build/libs/bddmod-${RELEASE_VERSION}-all.jar" release-assets/
+          args=()
+          IFS=',' read -ra versions <<< "$PRERELEASE_VERSIONS"
+          for version in "${versions[@]}" "$RELEASE_VERSION"; do
+            path="$(find release-assets -type f -name "bddmod-${version}-all.jar" -print -quit)"
+            test -n "$path" || { echo "missing release asset for $version" >&2; exit 1; }
+            asset="release-assets/bddmod-${version}-all.jar"
+            cp "$path" "$asset"
+            args+=(--artifact "${version}=${asset}")
+          done
+          python3 scripts/verify_release_assets.py --root . "${args[@]}" | tee release-assets/release-assets-report.txt
+          {
+            echo "# BDD Local Client ${RELEASE_VERSION}"
+            echo
+            echo "Stable release assets and SHA-256 digests:"
+            echo
+            sed 's/^/- /' release-assets/release-assets-report.txt
+            echo
+            echo "Minecraft 1.20.1, Forge 47.4.10, Java 17."
+          } > release-notes.md
+
+      - name: Upload release candidate bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: bddmod-release-${{ inputs.release_version }}
+          if-no-files-found: error
+          path: |
+            release-assets/*-all.jar
+            release-assets/release-assets-report.txt
+            gradle-release.log
+            release-notes.md
+
+      - name: Publish GitHub Release
+        if: ${{ inputs.publish_release }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          set -euo pipefail
+          mapfile -t assets < <(find release-assets -maxdepth 1 -type f -name 'bddmod-*-all.jar' -print | sort)
+          test "${#assets[@]}" -gt 0
+          gh release create "v${RELEASE_VERSION}" "${assets[@]}" \
+            --target "$GITHUB_SHA" \
+            --title "BDD Local Client ${RELEASE_VERSION}" \
+            --notes-file release-notes.md

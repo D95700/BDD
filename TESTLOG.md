@@ -1,5 +1,37 @@
 # BDD Mod Test Log
 
+## 1.4.0-alpha.3 loader-neutral final framebuffer capture build verification
+
+- Test date: 2026-09-22
+- Test type: Java compilation, resource processing, packaged-artifact verification, and source-level OpenGL state review
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17 toolchain
+- Mod ID: `bddmod`
+- Gradle environment: `$env:GRADLE_USER_HOME='C:\Users\Administrator\.gradle'; $env:JAVA_HOME='C:\Program Files\Java\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\bddmod-unavailable'`; Java compilation uses `build\tmp\codex-direct-javac.init.gradle` to select the Java 17 toolchain compiler.
+- Commands: `.\gradlew.bat build --no-daemon --stacktrace --init-script build\tmp\codex-direct-javac.init.gradle`; `python scripts\verify_build.py`; `python scripts\verify_release_assets.py --root . --artifact 1.4.0-alpha.1=build/libs/bddmod-1.4.0-alpha.1-all.jar --artifact 1.4.0-alpha.2=build/libs/bddmod-1.4.0-alpha.2-all.jar --artifact 1.4.0-alpha.3=build/libs/bddmod-1.4.0-alpha.3-all.jar`; `git diff --check`
+- Result: PASS - the alpha.3 capture abstraction compiles, resource templates expand, the installable artifact embeds matching SemVer metadata, and all retained alpha.1-alpha.3 artifacts pass the multi-asset verifier
+
+### Verified behaviors
+
+- `AudienceFrameCapture.CurrentFramebuffer` reads the current read framebuffer and copies it to the audience target without assuming Minecraft's vanilla main target.
+- Framebuffer bindings, viewport, scissor rectangle, and scissor enablement are restored after every capture attempt.
+- Iris/Oculus detection is diagnostic only; loader presence no longer disables the audience route before capture.
+- Capture failures disable only the audience target and preserve the player renderer, with the failure reason visible in the diagnostic panel.
+
+### Not covered
+
+- No live Vanilla or Oculus Shader Pack client run was executed for alpha.3.
+- No OBS recording, runtime screenshot, or audio acceptance was produced for alpha.3.
+
+### Evidence
+
+- Source: `src/main/java/com/example/bddmod/client/AudienceFrameCapture.java`, `AudienceRenderTargetManager.java`, and `ShaderCompatibility.java`.
+- The alpha.3 installable artifact is `build/libs/bddmod-1.4.0-alpha.3-all.jar`, SHA-256 `FDCE5DB232768BFA2E59E8DE49A5EB9F20D5F8C28D8A7BDF7314DA430CC8CA87`.
+- The retained alpha.1, alpha.2, and alpha.3 assets report matching embedded versions, WTFPL metadata, bundled WebSocket dependency, required resources, and SHA-256 values.
+- Negative multi-asset checks passed: missing-artifact and filename/version-mismatch fixtures both returned exit code `1`.
+- Workflow YAML parsing and Python syntax checks passed for `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `scripts/verify_build.py`, and `scripts/verify_release_assets.py`.
+
 ## 1.4.0-alpha.2 Iris/Oculus compatibility fallback source and build verification
 
 - Test date: 2026-09-22

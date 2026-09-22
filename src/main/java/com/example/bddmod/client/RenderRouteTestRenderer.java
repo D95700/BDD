@@ -32,10 +32,8 @@ public final class RenderRouteTestRenderer {
         }
 
         boolean diagnosticsEnabled = Config.RENDER_ROUTE_TEST_ENABLED.get();
-        boolean audienceRouteSupported = ShaderCompatibility.isAudienceRouteSupported();
         boolean audienceEnabled = OBSMonitor.isConnected()
-                && Config.TERROR_MODE_ENABLED.get()
-                && audienceRouteSupported;
+                && Config.TERROR_MODE_ENABLED.get();
         if (audienceEnabled && !invocationLogged) {
             invocationLogged = true;
             LOGGER.info("Audience GUI renderer active: {}x{}, recording={}, diagnostics={}",
@@ -95,7 +93,10 @@ public final class RenderRouteTestRenderer {
                 Component.literal("AUDIENCE WINDOW: " + AudienceWindowManager.describeState()),
                 split + 8, top + 54, PANEL_TEXT, true);
         graphics.drawString(minecraft.font,
-                Component.literal("OBS CAPTURE: WINDOW SOURCE READY"),
+                Component.literal("CAPTURE: " + AudienceRenderTargetManager.describeCapture()),
                 left + 8, top + 74, 0xFFFFFFFF, true);
+        graphics.drawString(minecraft.font,
+                Component.literal("FBO: " + AudienceRenderTargetManager.describeState()),
+                split + 8, top + 74, 0xFFFFFFFF, true);
     }
 }

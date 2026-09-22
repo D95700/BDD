@@ -55,6 +55,26 @@ This file records user-facing changes for the README, visual-design, and release
 - Detection is cached after the first client render and reported in the log; the optional route diagnostic panel identifies the fallback loader.
 - Build and source-level compatibility checks are recorded in `TESTLOG.md`; a live Iris/Oculus runtime session remains unverified in this environment.
 
+## 1.4.0-alpha.3 — loader-neutral final framebuffer capture
+
+### User-facing changes
+
+- The audience output now captures the framebuffer that is actually presenting the final Minecraft frame, including a shader-loader-managed framebuffer when available.
+- Iris/Oculus detection no longer disables the audience window by itself; the player view remains unchanged while the route reports its capability state in the diagnostic panel.
+
+### Configuration and compatibility
+
+- No new configuration key or installation step is required.
+- The implementation has no compile-time Iris or Oculus dependency. Unsupported loader APIs or OpenGL failures enter a safe audience-only fallback.
+- `README.md` remains unchanged because this is a development prerelease.
+
+### Technical behavior and verification
+
+- The capture path preserves and restores framebuffer bindings, viewport, and scissor state around the blit.
+- The diagnostic panel now reports loader status, the current capture source, and the last audience FBO failure.
+- Added a manually gated stable-release workflow and a multi-artifact verifier; prerelease CI artifacts are retained for the eventual `1.4.0` asset bundle.
+- Vanilla and active Oculus shader-pack runtime verification remain beta acceptance gates; this alpha records build and source-level verification only.
+
 ## 1.3.0 — stable release
 
 ### User-facing changes
