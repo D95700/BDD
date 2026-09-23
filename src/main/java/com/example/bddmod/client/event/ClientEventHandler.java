@@ -4,6 +4,7 @@ import com.example.bddmod.Config;
 import com.example.bddmod.client.BDDSessionData;
 import com.example.bddmod.client.AudienceHeadEffectController;
 import com.example.bddmod.client.AudienceRenderTargetManager;
+import com.example.bddmod.client.AudienceTriggerController;
 import com.example.bddmod.client.AudienceWindowManager;
 import com.example.bddmod.client.OBSMonitor;
 import com.example.bddmod.client.OBSSetupScreen;
@@ -53,6 +54,7 @@ public final class ClientEventHandler {
         boolean recording = OBSMonitor.isRecording();
         RecordingPulseController.update(recording && Config.TERROR_MODE_ENABLED.get());
         Minecraft minecraft = Minecraft.getInstance();
+        AudienceTriggerController.update(minecraft, recording);
         if (minecraft.player != null && minecraft.level != null) {
             BDDSessionData.get().tick(recording, minecraft.screen == null);
         }

@@ -2,6 +2,18 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.5.0-alpha.1 — audience damage trigger
+
+### User-facing changes
+
+- Added a short audience-only damage reaction: when the local player is hurt during recording, `BDD Audience Output` briefly shows a red flash and color separation that fades automatically.
+- The reaction is isolated to the audience output and does not alter the player's Minecraft window or add a new configuration requirement.
+
+### Compatibility and verification
+
+- Targets Minecraft 1.20.1, Forge 47.4.10, and Java 17; the existing OBS and audience route settings remain compatible.
+- Build and runtime verification for this prerelease are recorded in `TESTLOG.md`; README remains on the latest published stable release, 1.4.0.
+
 ## 1.4.0 - stable release
 
 ### User-facing changes

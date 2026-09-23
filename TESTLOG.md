@@ -1,5 +1,34 @@
 # BDD Mod Test Log
 
+## 1.5.0-alpha.1 audience damage trigger smoke test
+
+- Test date: 2026-09-24
+- Test type: Forge development-client runtime launch, OBS mock connection, and audience shader-route smoke test
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17.0.15 (Gradle bootstrap used the checked-in direct-javac init script)
+- Mod ID: `bddmod`
+- Commands: `$env:GRADLE_USER_HOME='C:\\Users\\Administrator\\.gradle'; $env:JAVA_HOME='C:\\Program Files\\Java\\jdk-11'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixdomain.tmpdir=Z:\\bddmod-unavailable'; .\\gradlew.bat runClient --args='--quickPlaySingleplayer 新的世界' --no-daemon --init-script build\\tmp\\codex-direct-javac.init.gradle`; local mock OBS endpoint `python build\\tmp\\mock_obs_route_test.py` on `127.0.0.1:4455`.
+- Result: PASS for client launch and audience-route smoke coverage; not an exhaustive gameplay verification.
+
+### Verified
+
+- The development client reached a single-player world and connected to the local mock OBS endpoint with recording active.
+- The new `1.5.0-alpha.1` classes loaded, the Vanilla final framebuffer capture succeeded, the audience shader compiled, and `BDD Audience Output` opened and routed the mock capture source.
+- The client saved the world and exited after the test without a crash.
+
+### Observations and not covered
+
+- A controlled player-damage action was not executed, so the red flash/color-separation response and `Audience damage trigger activated` log remain unverified in this runtime session.
+- The Windows Computer Use channel could not initialize because the host reported `Codex auth token is unavailable`; no screenshot evidence was produced.
+- The temporary mock OBS process was stopped after the client shutdown; port `4455` was confirmed free.
+
+### Evidence
+
+- Runtime log: `run/logs/latest.log` (audience route entries around `01:40:03`).
+- Installable artifact: `build/libs/bddmod-1.5.0-alpha.1-all.jar`.
+- Artifact verifier: `python scripts\\verify_build.py` (`PASS`, SHA-256 `4A06320AF1DEEC3306475A86EF17174B1112D92FA95B545D246AC4C6CD9F92A1`).
+
 ## 1.4.0 stable release verification
 
 - Test date: 2026-09-23

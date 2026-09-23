@@ -47,6 +47,7 @@ public final class AudienceWindowManager {
             + "uniform vec2 HeadRadius;\n"
             + "uniform float HeadMode;\n"
             + "uniform float HeadActive;\n"
+            + "uniform float Trigger;\n"
             + "in vec2 TexCoord;\n"
             + "out vec4 FragColor;\n"
             + "float hash(vec2 value) {\n"
@@ -88,6 +89,12 @@ public final class AudienceWindowManager {
             + "        warpedUv += vec2(wave * 0.28, verticalPull) * headMask * safeHeadRadius;\n"
             + "    }\n"
             + "    vec4 source = texture(Texture, clamp(warpedUv, vec2(0.001), vec2(0.999)));\n"
+            + "    if (Trigger > 0.001) {\n"
+            + "        vec2 split = vec2((0.003 + 0.010 * Trigger) * sin(Time * 38.0), 0.0);\n"
+            + "        float red = texture(Texture, clamp(warpedUv + split, vec2(0.001), vec2(0.999))).r;\n"
+            + "        float blue = texture(Texture, clamp(warpedUv - split, vec2(0.001), vec2(0.999))).b;\n"
+            + "        source.rgb = mix(source.rgb, vec3(red, source.g, blue), Trigger * 0.82);\n"
+            + "    }\n"
             + "    vec2 block = floor(TexCoord * vec2(160.0, 90.0));\n"
             + "    float grain = hash(block + vec2(floor(Time * 24.0))) - 0.5;\n"
             + "    float edge = 1.0 - smoothstep(0.0, 0.32, min(min(TexCoord.x, 1.0 - TexCoord.x),\n"
@@ -95,6 +102,7 @@ public final class AudienceWindowManager {
             + "    float amount = (0.006 + 0.026 * Pulse) * (0.15 + 0.85 * edge) * Active;\n"
             + "    vec3 color = source.rgb + vec3(grain * amount);\n"
             + "    color += vec3(0.024, 0.0, 0.0) * edge * Pulse * Active;\n"
+            + "    color += vec3(0.10, 0.0, 0.0) * Trigger;\n"
             + "    vec2 textUv = (TexCoord - vec2(0.62, 0.10)) / vec2(0.30, 0.07);\n"
             + "    float hiddenText = 0.0;\n"
             + "    if (all(greaterThanEqual(textUv, vec2(0.0)))\n"
@@ -126,6 +134,7 @@ public final class AudienceWindowManager {
     private static int headRadiusUniform;
     private static int headModeUniform;
     private static int headActiveUniform;
+    private static int triggerUniform;
     private static boolean failed;
     private static int windowWidth;
     private static int windowHeight;
@@ -266,6 +275,7 @@ public final class AudienceWindowManager {
         GL20.glUniform1f(headModeUniform, AudienceHeadEffectController.mode());
         GL20.glUniform1f(headActiveUniform,
                 AudienceHeadEffectController.isActive(recording) ? 1.0F : 0.0F);
+        GL20.glUniform1f(triggerUniform, AudienceTriggerController.level(recording));
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
         GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0L);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -302,6 +312,7 @@ public final class AudienceWindowManager {
         headRadiusUniform = GL20.glGetUniformLocation(program, "HeadRadius");
         headModeUniform = GL20.glGetUniformLocation(program, "HeadMode");
         headActiveUniform = GL20.glGetUniformLocation(program, "HeadActive");
+        triggerUniform = GL20.glGetUniformLocation(program, "Trigger");
         hiddenTextTexture = createHiddenTextTexture();
 
         float[] vertices = {
@@ -464,6 +475,7 @@ public final class AudienceWindowManager {
         headRadiusUniform = -1;
         headModeUniform = -1;
         headActiveUniform = -1;
+        triggerUniform = -1;
         windowWidth = 0;
         windowHeight = 0;
         restoreMinecraftContextIfPossible(mainHandle);
