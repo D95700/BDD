@@ -6,11 +6,11 @@
 
 ![Minecraft 1.20.1](https://img.shields.io/badge/Minecraft-1.20.1-3C8527?style=flat-square&logo=minecraft&logoColor=white)
 ![Forge 47.4.10](https://img.shields.io/badge/Forge-47.4.10-orange?style=flat-square)
-![Version 1.3.0](https://img.shields.io/badge/version-1.3.0-4C9AFF?style=flat-square)
+![Version 1.4.0](https://img.shields.io/badge/version-1.4.0-4C9AFF?style=flat-square)
 ![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Client Only](https://img.shields.io/badge/side-client--only-6C63FF?style=flat-square)
 
-**BDD Local Client 1.3.0** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组。
+**BDD Local Client 1.4.0** 是一个面向 Minecraft Java Edition 1.20.1 的 Forge 客户端模组。
 它提供 OBS 状态监控、录制辅助 HUD、观众窗口渲染和本地会话统计。
 
 </div>
@@ -36,7 +36,7 @@
 | 会话统计 | ✅ | 统计录制 tick、可操作/无遮罩 tick 和检查次数 |
 | 同步游戏内音频 | ✅ | 录制时播放与视觉反馈同步的游戏内音频 |
 | 本地信息快照 | 🧩 | 仅提供用户名、操作系统和当前时间的内存快照 |
-| FBO 与观众窗口诊断 | 🧪 | 测试模式开启时创建 `BDD Audience Output` 独立窗口，并通过共享 OpenGL 上下文显示观众 RenderTarget；面板报告窗口状态，适合 OBS 窗口源捕获 |
+| FBO 与观众窗口诊断 | ✅ | 测试模式开启时创建 `BDD Audience Output` 独立窗口，从当前最终 framebuffer 捕获观众画面；支持 Vanilla 和 Oculus（含活动 Shader Pack）的安全回退 |
 | 观众专用效果 | ✅ | 观众窗口使用独立渲染效果，玩家窗口保持独立 |
 
 ### HUD 示例
@@ -95,7 +95,7 @@ BDDMod
 
 ### 安装发行版
 
-1. 普通安装请从 GitHub Releases 下载 `bddmod-1.3.0-all.jar`；该文件包含运行时依赖。历史开发构建仍保留在同一个 `v1.3.0` Release 中供回溯。
+1. 普通安装请从 GitHub Releases 下载 `bddmod-1.4.0-all.jar`；该文件包含运行时依赖。`v1.4.0` Release 同时保留本路线的 alpha、beta 和 rc 安装包供回溯。
 2. 安装 Minecraft 1.20.1 对应的 Forge 47.x 客户端。
 3. 将 JAR 放入 Minecraft 的 `mods` 文件夹：
    - Windows：`%APPDATA%\\.minecraft\\mods`
@@ -164,7 +164,7 @@ BDDMod
 | 配置项 | 默认值 | 作用 |
 | --- | ---: | --- |
 | `terrorModeEnabled` | `true` | 启用/停用 BDD HUD 与录制反馈 |
-| `renderRouteTestEnabled` | `false` | 启用/停用 FBO 与独立观众窗口诊断；开启后 OBS 可捕获 `BDD Audience Output` 窗口，仅调试时建议开启 |
+| `renderRouteTestEnabled` | `false` | 启用/停用最终 framebuffer 捕获与独立观众窗口诊断；开启后 OBS 可捕获 `BDD Audience Output` 窗口，仅调试时建议开启 |
 | `recordingAudioVolume` | `0.30` | 游戏内录制音效音量，范围 `0.0`–`1.0`；同时受主音量和环境音效音量控制 |
 | `obsWebSocketPassword` | `""` | OBS WebSocket 5 密码；留空表示 OBS 未启用密码 |
 | `obsSetupCompleted` | `false` | 是否已经完成首次 OBS 设置引导；引导中选择“稍后设置”也会结束本次首次提示 |
@@ -183,6 +183,8 @@ BDDMod
 5. 录制开始/停止由 OBS 事件驱动更新；OBS 关闭或连接断开时，模组会显示 `OBS STANDBY` 并在后台重连。密码错误时，测试面板会显示 `AUTH FAILED`，并降低重试频率。
 
 监控始终限制在 `127.0.0.1`，不会向外部服务发送数据。
+
+Forge 1.20.1 的活动 Shader Pack 验证以 Oculus 为准。Iris 主要面向 Fabric/Quilt，本模组不宣称原生 Forge Iris 支持；缺少可选 loader API 或 framebuffer 捕获失败时，观众输出会安全关闭而不影响玩家窗口。
 
 游戏内录制音效使用 Minecraft 的“环境音效”通道，可通过主音量、环境音效音量和 `recordingAudioVolume` 控制。OBS 是否录入该音频取决于场景是否捕获 Minecraft 所使用的桌面或应用音频。
 
@@ -210,17 +212,19 @@ BDDMod
 - [ ] 扩展观众专用渲染能力与可验证触发器。
 - [ ] 增加更多客户端行为触发器。
 - [x] 完成游戏内录制音效管理、事件驱动播放及共享节奏同步。
-- [ ] 增加兼容 Iris/Oculus 等渲染扩展的回退策略。
-- [ ] 补充自动化测试、运行截图和发行版工作流。
+- [x] 增加 Oculus 渲染扩展的最终 framebuffer 捕获与安全回退策略；Iris 不宣称原生 Forge 支持。
+- [x] 补充安装包校验、手动门控发行版 workflow 和多构件 SHA-256 清单。
+- [ ] 补充更多自动化运行截图。
 
 构建会同时生成不含内置依赖的开发薄包和带 `-all` 后缀的可安装包。安装时必须选择 `-all.jar`。
 
-## ✅ 1.3.0 正式版摘要
+## ✅ 1.4.0 正式版摘要
 
-- 完成独立观众 RenderTarget 与 `BDD Audience Output` 窗口，支持 OBS 窗口源捕获，并修复观众画面上下颠倒问题。
+- 完成独立观众 RenderTarget 与 `BDD Audience Output` 窗口，支持 OBS 窗口源捕获，并从当前最终 framebuffer 复制玩家画面。
+- 在 Vanilla 和 Oculus（含活动 `ComplementaryReimagined_r5.9.3.zip`）验证了观众输出的兼容路线；捕获异常时玩家窗口和游戏逻辑继续运行。
 - 观众窗口使用独立渲染效果，玩家主窗口不受影响。
 - 录制时保留与视觉反馈同频的游戏内音频。
-- GitHub Release `v1.3.0` 同时保留 `1.3.0.dev1`–`dev3`、`1.3.0-alpha.1`–`alpha.6` 和稳定版 `bddmod-1.3.0-all.jar`，安装时请选择稳定版 `-all.jar`。
+- GitHub Release `v1.4.0` 同时保留 `1.4.0-alpha.1`–`alpha.7`、`1.4.0-beta.1`、`1.4.0-rc.1` 和稳定版 `bddmod-1.4.0-all.jar`，安装时请选择稳定版 `-all.jar`。
 
 ## 🆕 1.2.1 正式版历史摘要
 
