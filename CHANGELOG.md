@@ -2,6 +2,20 @@
 
 This file records user-facing changes for the README, visual-design, and release-note teams.
 
+## 1.4.0 - stable release
+
+### User-facing changes
+
+- Promotes the Oculus-compatible audience capture route to the stable Forge 1.20.1 release.
+- Keeps the existing OBS configuration format and loader-neutral framebuffer fallback behavior.
+- Publishes the complete 1.4.0 asset history from alpha.1 through beta.1, rc.1, and the stable `-all.jar`.
+
+### Verification and release scope
+
+- Stable packaging, embedded metadata, bundled runtime, required resources, and SHA-256 values are verified before publication.
+- Vanilla and Oculus active-Shader-Pack acceptance evidence is recorded in `TESTLOG.md`; native Forge Iris support is not claimed.
+- `README.md` is synchronized only in the separate post-release documentation commit after the GitHub Release is verified.
+
 ## 1.4.0-rc.1 - release workflow and asset dry-run
 
 ### User-facing verification

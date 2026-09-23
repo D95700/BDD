@@ -1,5 +1,32 @@
 # BDD Mod Test Log
 
+## 1.4.0 stable release verification
+
+- Test date: 2026-09-23
+- Test type: Stable promotion build, complete retained-asset validation, and release preparation
+- Minecraft: 1.20.1
+- Forge: 47.4.10
+- Java: 17 toolchain
+- Mod ID: `bddmod`
+- Commands: `gradlew.bat compileJava`; `gradlew.bat processResources`; `gradlew.bat build` without `clean`; `python scripts\verify_build.py`; `python scripts\verify_release_assets.py --root . --manifest build\release-assets-1.4.0.tsv` with alpha.1-alpha.7, beta.1, rc.1, and 1.4.0 mappings; `git diff --check`.
+- Result: PASS for stable packaging and complete retained-asset validation.
+
+### Verified
+
+- The stable artifact embeds `1.4.0`, `WTFPL`, the required resources, and bundled `nv-websocket-client-2.14`.
+- The retained asset verifier accepted all ten installable artifacts from alpha.1 through stable and emitted a deterministic version, filename, and SHA-256 manifest.
+- Stable code remains separate from README synchronization until the GitHub Release and assets are verified.
+
+### Not covered
+
+- GitHub Release publication and post-release README synchronization are performed after this local build record.
+- No new runtime client session is claimed by this package promotion; runtime evidence remains the documented beta acceptance matrix.
+
+### Evidence
+
+- Installable artifact: `build/libs/bddmod-1.4.0-all.jar`.
+- Release manifest: `build/release-assets-1.4.0.tsv`.
+
 ## 1.4.0-rc.1 release workflow dry-run
 
 - Test date: 2026-09-23
